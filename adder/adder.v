@@ -4,10 +4,10 @@
 
 module Adder
 (
-	input wire augend,
-	input wire addend,
-	output wire sum,
-	output wire carry
+	input wire i_augend,
+	input wire i_addend,
+	output wire o_sum,
+	output wire o_carry
 );
 	wire a;
 	wire b;
@@ -20,9 +20,9 @@ module Adder
 	assign full_sum = half_sum ^ c_in;
 	assign c_out = (a & b) | (half_sum & c_in);
 
-	assign a = augend;
-	assign b = addend;
-	assign sum = full_sum;
-	assign carry = c_out;
+	assign a = i_augend;
+	assign b = i_addend;
+	assign o_sum = full_sum;
+	assign o_carry = c_out;
 
 endmodule

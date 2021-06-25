@@ -16,6 +16,7 @@ module Adder
 	wire half_sum;
 	wire full_sum;
 
+	assign c_in = 1'b0;
 	assign half_sum = a ^ b;
 	assign full_sum = half_sum ^ c_in;
 	assign c_out = (a & b) | (half_sum & c_in);

@@ -1,29 +1,37 @@
 /* =================================================
- * ADDER: sum = augend + addend
+ * ADDER: {carry, sum} = augend + addend
  * ================================================= */
 
 module Adder
+#(
+	parameter BITS = 8
+)
 (
-	input wire i_augend,
-	input wire i_addend,
-	output wire o_sum,
+	input  wire [BITS - 1 : 0] i_augend,
+	input  wire [BITS - 1 : 0] i_addend,
+	output wire [BITS - 1 : 0] o_sum,
 	output wire o_carry
 );
-	wire a;
-	wire b;
-	wire c_in;
-	wire c_out;
-	wire half_sum;
-	wire full_sum;
+	// WIRES //
 
-	assign c_in = 1'b0;
-	assign half_sum = a ^ b;
-	assign full_sum = half_sum ^ c_in;
-	assign c_out = (a & b) | (half_sum & c_in);
+	wire [BITS - 1 : 0] carry_in;
+	wire [BITS - 1 : 0] carry_out;
+	wire [BITS - 1 : 0] half_sum;
+	wire [BITS - 1 : 0] full_sum;
 
-	assign a = i_augend;
-	assign b = i_addend;
+	// SUM //
+
+	assign half_sum = i_augend ^ i_addend;
+	assign full_sum = half_sum ^ carry_in;
 	assign o_sum = full_sum;
-	assign o_carry = c_out;
+
+	// CARRY //
+
+	assign carry_out = (i_augend & i_addend) | (half_sum & carry_in);
+
+	// carry propagation
+	assign carry_in[0] = 1'b0;
+	assign carry_in[BITS - 1 : 1] = carry_out[BITS - 2 : 0];
+	assign o_carry = carry_out[BITS - 1];
 
 endmodule

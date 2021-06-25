@@ -1,13 +1,14 @@
 module AdderTB;
 
 	parameter DELAY = 1;
+	parameter BITS = 8;
 
-	reg i_augend;
-	reg i_addend;
-	wire o_sum;
+	reg [BITS - 1 : 0 ] i_augend;
+	reg [BITS - 1 : 0 ] i_addend;
+	wire [BITS - 1 : 0 ] o_sum;
 	wire o_carry;
 
-	Adder adder
+	Adder #(.BITS(BITS)) adder
 	(
 		.i_augend(i_augend),
 		.i_addend(i_addend),
@@ -17,13 +18,14 @@ module AdderTB;
 
 	integer expected;
 	integer actual;
+	integer MAX_VALUE = $pow(2, BITS) - 1;
 
 	initial begin
 		$dumpfile("adder.vcd");
 		$dumpvars(0, adder);
 
-		for (integer x = 0; x < 2; x++)begin
-			for (integer y = 0; y < 2; y++) begin
+		for (integer x = 0; x <= MAX_VALUE; x++)begin
+			for (integer y = 0; y <= MAX_VALUE; y++) begin
 				i_augend = x;
 				i_addend = y;
 				# DELAY;

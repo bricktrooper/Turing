@@ -17,13 +17,11 @@ module Adder
 	wire [BITS - 1 : 0] carry_in;
 	wire [BITS - 1 : 0] carry_out;
 	wire [BITS - 1 : 0] half_sum;
-	wire [BITS - 1 : 0] full_sum;
 
 	// SUM //
 
 	assign half_sum = i_augend ^ i_addend;
-	assign full_sum = half_sum ^ carry_in;
-	assign o_sum = full_sum;
+	assign o_sum = half_sum ^ carry_in;
 
 	// CARRY //
 

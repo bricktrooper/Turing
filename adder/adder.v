@@ -1,5 +1,5 @@
 /* =================================================
- * ADDER: {carry, sum} = augend + addend
+ * ADDER: sum = augend + addend
  * ================================================= */
 
 module Adder

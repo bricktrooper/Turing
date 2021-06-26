@@ -4,9 +4,9 @@ module SubtractorTB;
 	parameter BITS = 4;
 	parameter MAX_VALUE = $pow(2, BITS) - 1;
 
-	reg [BITS - 1 : 0 ] i_minuend;
-	reg [BITS - 1 : 0 ] i_subtrahend;
-	wire [BITS - 1 : 0 ] o_difference;
+	reg [BITS - 1 : 0] i_minuend;
+	reg [BITS - 1 : 0] i_subtrahend;
+	wire [BITS - 1 : 0] o_difference;
 	wire o_borrow;
 
 	Subtractor #(.BITS(BITS)) subtractor

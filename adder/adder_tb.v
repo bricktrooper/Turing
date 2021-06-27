@@ -1,7 +1,7 @@
 module AdderTB;
 
 	parameter DELAY = 1;
-	parameter BITS = 8;
+	parameter BITS = 4;
 	integer MAX_VALUE = $pow(2, BITS) - 1;
 
 	reg [BITS - 1 : 0] i_augend;
@@ -17,8 +17,8 @@ module AdderTB;
 		.o_carry(o_carry)
 	);
 
-	reg signed [BITS : 0] expected;
-	reg signed [BITS : 0] actual;
+	reg unsigned [BITS : 0] expected;
+	reg unsigned [BITS : 0] actual;
 
 	initial begin
 		$dumpfile("adder.vcd");
@@ -29,8 +29,10 @@ module AdderTB;
 				i_augend = x;
 				i_addend = y;
 				# DELAY;
+
 				expected = x + y;
 				actual = {o_carry, o_sum};
+
 				if (expected != actual)
 					$display("[%0d + %0d]: Expected %0d but result was %0d", x, y, expected, actual);
 			end

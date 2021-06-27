@@ -4,17 +4,17 @@ module SubtractorTB;
 	parameter BITS = 4;
 	parameter MAX_VALUE = $pow(2, BITS) - 1;
 
-	reg [BITS - 1 : 0] i_minuend;
-	reg [BITS - 1 : 0] i_subtrahend;
-	wire [BITS - 1 : 0] o_difference;
-	wire o_borrow;
+	reg [BITS - 1 : 0] minuend;
+	reg [BITS - 1 : 0] subtrahend;
+	wire [BITS - 1 : 0] difference;
+	wire borrow;
 
 	Subtractor #(.BITS(BITS)) subtractor
 	(
-		.i_minuend(i_minuend),
-		.i_subtrahend(i_subtrahend),
-		.o_difference(o_difference),
-		.o_borrow(o_borrow)
+		.i_minuend(minuend),
+		.i_subtrahend(subtrahend),
+		.o_difference(difference),
+		.o_borrow(borrow)
 	);
 
 	reg signed [BITS : 0] expected;
@@ -22,16 +22,16 @@ module SubtractorTB;
 
 	initial begin
 		$dumpfile("subtractor.vcd");
-		$dumpvars(0, subtractor);
+		$dumpvars();
 
 		for (integer x = 0; x <= MAX_VALUE; x++)begin
 			for (integer y = 0; y <= MAX_VALUE; y++) begin
-				i_minuend = x;
-				i_subtrahend = y;
+				minuend = x;
+				subtrahend = y;
 				# DELAY;
 
 				expected = x - y;
-				actual = {o_borrow, o_difference};
+				actual = {borrow, difference};
 
 				if (expected != actual)
 					$display("[%0d - %0d] expected: %0d, actual: %0d", x, y, expected, actual);

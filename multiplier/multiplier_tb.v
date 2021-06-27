@@ -57,6 +57,19 @@ module MultiplierTB;
 		if (finished != 1'b1)
 			$display("Multiplier did not finish after %0d clock cycles", BITS);
 
+		# CLOCK_PERIOD;
+
+		start = 1;
+
+		# (CLOCK_PERIOD * BITS);
+
+		if (finished != 1'b1)
+			$display("Overloaded multiplier did not finish after %0d clock cycles", BITS);
+
+		start = 0;
+
+		# CLOCK_PERIOD;
+
 		//for (integer x = 0; x <= MAX_VALUE; x++)begin
 		//	for (integer y = 0; y <= MAX_VALUE; y++) begin
 		//		i_augend = x;

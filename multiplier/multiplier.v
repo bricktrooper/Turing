@@ -24,13 +24,11 @@ module Multiplier
 		if (i_reset) begin
 			state <= {BITS{1'b0}};
 		end else begin
-			state[0] <= i_start;
+			state[0] <= i_start & (~|state);              // NOR gating to prevent more than one "hot" bit
 			state[BITS - 1 : 1] <= state[BITS - 2 : 0];   // shift one-hot state
 		end
 	end
 
 	assign o_finished = state[BITS - 1];
-
-
 
 endmodule

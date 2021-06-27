@@ -13,6 +13,11 @@ module Clock
 	reg clock;
 	reg enable;
 
+	initial begin
+		clock <= 1'b0;
+		enable <= 1'b1;
+	end
+
 	// clock generator
 	always begin
 		clock <= 1'b1;

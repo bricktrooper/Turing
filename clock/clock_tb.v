@@ -2,31 +2,31 @@ module ClockTB;
 
 	parameter CLOCK_PERIOD = 10;
 
-	reg enable;
-	wire clock;
+	reg i_enable;
+	wire o_clock;
 
-	Clock #(.PERIOD(CLOCK_PERIOD)) clock_generator
+	Clock #(.PERIOD(CLOCK_PERIOD)) clock
 	(
-		.i_enable(enable),
-		.o_clock(clock)
+		.i_enable(i_enable),
+		.o_clock(o_clock)
 	);
 
 	initial begin
 		$dumpfile("clock.vcd");
-		$dumpvars(0, clock_generator);
+		$dumpvars(0);
 
 		// test enable
-		enable = 1;
+		i_enable = 1;
 		# (CLOCK_PERIOD * 4);
-		enable = 0;
+		i_enable = 0;
 		# (CLOCK_PERIOD * 2);
 
 		// test gating
-		enable = 1;
+		i_enable = 1;
 		# (CLOCK_PERIOD / 10)
-		enable = 0;
+		i_enable = 0;
 		# (CLOCK_PERIOD * 2)
-		enable = 1;
+		i_enable = 1;
 		# (CLOCK_PERIOD * 2)
 
 		$finish;

@@ -7,8 +7,8 @@ module Subtractor
 	parameter BITS = 8
 )
 (
-	input  wire [BITS - 1 : 0] i_minuend,
-	input  wire [BITS - 1 : 0] i_subtrahend,
+	input wire [BITS - 1 : 0] i_minuend,
+	input wire [BITS - 1 : 0] i_subtrahend,
 	output wire [BITS - 1 : 0] o_difference,
 	output wire o_borrow
 );

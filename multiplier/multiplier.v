@@ -1,5 +1,5 @@
 /* =================================================
- * MULTIPLIER: product = multiplier * multiplicand
+ * MULTIPLIER: product = multiplicand * multiplier
  * ================================================= */
 
 module Multiplier
@@ -16,8 +16,8 @@ module Multiplier
 
 	// DATA //
 
-	input  wire [BITS - 1 : 0] i_multiplier
-	//input  wire [BITS - 1 : 0] i_multiplicand,
+	input  wire [BITS - 1 : 0] i_multiplicand
+	//input  wire [BITS - 1 : 0] i_multiplier,
 	//output wire [(2 * BITS) - 1 : 0] o_product   // n bits * n bits requires at most 2n bits
 
 );
@@ -39,23 +39,23 @@ module Multiplier
 
 	assign o_finished = state[BITS - 1];
 
-	// MULTIPLIER //
+	// MULTIPLICAND //
 
-	reg [(2 * BITS) - 1 : 0] multiplier;
+	reg [(2 * BITS) - 1 : 0] multiplicand;   // shift register
 
 	always @ (posedge i_clock) begin
 		case (start)
 			1'b0: begin   // left shift
-				multiplier[0] <= 1'b0;
-				multiplier[(2 * BITS) - 1 : 1] <= multiplier[(2 * BITS) - 2 : 0];
+				multiplicand[0] <= 1'b0;
+				multiplicand[(2 * BITS) - 1 : 1] <= multiplicand[(2 * BITS) - 2 : 0];
 			end
 			1'b1: begin   // load input value
-				multiplier <= i_multiplier;
+				multiplicand <= i_multiplicand;
 			end
 		endcase
 	end
 
 	wire [(2 * BITS) - 1 : 0] test;
-	assign test = multiplier;
+	assign test = multiplicand;
 
 endmodule

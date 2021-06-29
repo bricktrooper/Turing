@@ -71,4 +71,22 @@ module Multiplier
 		endcase
 	end
 
+	// MULTIPLY ACCUMULATOR //
+
+	wire [(2 * BITS) - 1 : 0] partial_product;
+	//wire [(2 * BITS) - 1 : 0] sum;
+	//wire carry;
+
+	// binary multiplication using bitwise AND
+	assign partial_product = multiplicand & {(2 * BITS){multiplier[0]}};
+
+	// accumulate partial products
+	//Adder #(.BITS(2 * BITS)) accumulator
+	//(
+	//	.i_augend(o_product),
+	//	.i_addend(partial_product),
+	//	.o_sum(sum),
+	//	.o_carry(carry)
+	//)
+
 endmodule

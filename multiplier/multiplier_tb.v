@@ -9,28 +9,29 @@ module MultiplierTB;
 	//wire [BITS - 1 : 0] o_sum;
 	//wire o_carry;
 
-	wire clock;
+	wire i_clock;
 
-	Clock #(.PERIOD(CLOCK_PERIOD)) clock_generator
+	Clock #(.PERIOD(CLOCK_PERIOD)) clock
 	(
 		.i_enable(1'b1),
-		.o_clock(clock)
+		.o_clock(i_clock)
 	);
 
-	reg reset;
-	reg start;
-	wire finished;
+	reg i_reset;
+	reg i_start;
+	wire o_finished;
+	reg [BITS - 1 : 0] i_multiplier;
 
 	Multiplier #(.BITS(BITS)) multiplier
 	(
-		//.i_augend(i_augend),
+		.i_clock(i_clock),
+		.i_reset(i_reset),
+		.i_start(i_start),
+		.o_finished(o_finished),
+		.i_multiplier(i_multiplier)
 		//.i_addend(i_addend),
 		//.o_sum(o_sum),
 		//.o_carry(o_carry)
-		.i_clock(clock),
-		.i_reset(reset),
-		.i_start(start),
-		.o_finished(finished)
 	);
 
 	//reg unsigned [BITS : 0] expected;
@@ -40,40 +41,20 @@ module MultiplierTB;
 		$dumpfile("multiplier.vcd");
 		$dumpvars();
 
-		reset = 1;
-		start = 0;
+		i_reset = 1;
+		i_start = 0;
 
 		# CLOCK_PERIOD;
 
-		reset = 0;
-		start = 1;
+		i_reset = 0;
+		i_start = 1;
+		i_multiplier = 11;
 
 		# CLOCK_PERIOD;
 
-		start = 0;
-
-		# (CLOCK_PERIOD * (BITS - 1));
-
-		if (finished != 1'b1)
-			$display("Multiplier did not finish after");
-
-		# CLOCK_PERIOD;
-
-		start = 1;
+		i_start = 0;
 
 		# (CLOCK_PERIOD * BITS);
-
-		if (finished != 1'b1)
-			$display("Overloaded multiplier did not finish");
-
-		# (CLOCK_PERIOD * BITS);
-
-		if (finished != 1'b1)
-			$display("Multiplier did not finish after continuous operation");
-
-		start = 0;
-
-		# CLOCK_PERIOD;
 
 		//for (integer x = 0; x <= MAX_VALUE; x++)begin
 		//	for (integer y = 0; y <= MAX_VALUE; y++) begin

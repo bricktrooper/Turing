@@ -26,7 +26,7 @@ module Multiplier
 	reg [BITS - 1: 0] state;
 	wire start;
 
-	assign start = i_start & (~|state[BITS - 2 : 0]);   // NOR gating to prevent more than one "hot" bit
+	assign start = i_start & (~|state);   // NOR gating to prevent more than one "hot" bit
 
 	always @ (posedge i_clock) begin
 		if (i_reset) begin
@@ -80,24 +80,29 @@ module Multiplier
 
 	// ACCUMULATE //
 
-	wire [(2 * BITS) - 1 : 0] sum;
+	wire [(2 * BITS) - 1 : 0] sum;      // accumulator output
+	reg [(2 * BITS) - 1 : 0] product;   // product register for accumulation
 
 	// accumulate partial products
 	Adder #(.BITS(2 * BITS)) accumulator
 	(
-		.i_augend(o_product),
+		.i_augend(product),
 		.i_addend(partial_product),
 		.o_sum(sum),
-		.o_carry()
+		.o_carry()   // sum will never exceed 2n bits
 	);
 
 	// PRODUCT //
 
-	always @ (posedge i_clock) begin
+	always @ (*) begin
 		case (start)
-			1'b0: o_product <= sum;                  // update product with latest accumulator output
-			1'b1: o_product <= {(2 * BITS){1'b0}};   // reset product to 0
+			1'b0: o_product = sum;                  // update product with latest accumulator output
+			1'b1: o_product = {(2 * BITS){1'b0}};   // reset product to 0
 		endcase
+	end
+
+	always @ (posedge i_clock) begin
+		product <= o_product;   // save current product
 	end
 
 endmodule

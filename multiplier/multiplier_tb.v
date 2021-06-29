@@ -31,8 +31,8 @@ module MultiplierTB;
 		.o_product(o_product)
 	);
 
-	//reg unsigned [BITS : 0] expected;
-	//reg unsigned [BITS : 0] actual;
+	reg unsigned [(2 * BITS) - 1 : 0] expected;
+	reg unsigned [(2 * BITS) - 1 : 0] actual;
 
 	initial begin
 		$dumpfile("multiplier.vcd");
@@ -45,23 +45,20 @@ module MultiplierTB;
 
 		i_reset = 0;
 		i_start = 1;
-		i_multiplicand = 11;
-		i_multiplier = 5;
+
+		i_multiplicand = 15;
+		i_multiplier = 14;
 
 		# CLOCK_PERIOD;
+		i_multiplicand = 11;
+		i_multiplier = 2;
+
+		# (CLOCK_PERIOD * BITS);
 
 		//i_start = 0;
-		i_multiplicand = 13;
-		i_multiplier = 10;
 
+		# CLOCK_PERIOD;
 		# (CLOCK_PERIOD * BITS);
-
-		//i_start = 1;
-
-
-		# (CLOCK_PERIOD * BITS);
-
-		i_start = 0;
 
 		//for (integer x = 0; x <= MAX_VALUE; x++)begin
 		//	for (integer y = 0; y <= MAX_VALUE; y++) begin

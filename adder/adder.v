@@ -7,8 +7,8 @@ module Adder
 	parameter BITS = 8
 )
 (
-	input  wire [BITS - 1 : 0] i_augend,
-	input  wire [BITS - 1 : 0] i_addend,
+	input wire [BITS - 1 : 0] i_augend,
+	input wire [BITS - 1 : 0] i_addend,
 	output wire [BITS - 1 : 0] o_sum,
 	output wire o_carry
 );

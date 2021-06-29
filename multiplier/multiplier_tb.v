@@ -52,9 +52,17 @@ module MultiplierTB;
 
 		# CLOCK_PERIOD;
 
-		i_start = 0;
+		//i_start = 0;
+		i_multiplier = 13;
 
 		# (CLOCK_PERIOD * BITS);
+
+		//i_start = 1;
+
+
+		# (CLOCK_PERIOD * BITS);
+
+		i_start = 0;
 
 		//for (integer x = 0; x <= MAX_VALUE; x++)begin
 		//	for (integer y = 0; y <= MAX_VALUE; y++) begin

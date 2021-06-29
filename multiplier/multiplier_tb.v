@@ -4,11 +4,6 @@ module MultiplierTB;
 	parameter BITS = 4;
 	//integer MAX_VALUE = $pow(2, BITS) - 1;
 
-	//reg [BITS - 1 : 0] i_augend;
-	//reg [BITS - 1 : 0] i_addend;
-	//wire [BITS - 1 : 0] o_sum;
-	//wire o_carry;
-
 	wire i_clock;
 
 	Clock #(.PERIOD(CLOCK_PERIOD)) clock
@@ -20,8 +15,10 @@ module MultiplierTB;
 	reg i_reset;
 	reg i_start;
 	wire o_finished;
+
 	reg [BITS - 1 : 0] i_multiplicand;
 	reg [BITS - 1 : 0] i_multiplier;
+	wire [(2 * BITS) - 1 : 0] o_product;
 
 	Multiplier #(.BITS(BITS)) multiplier
 	(
@@ -30,10 +27,8 @@ module MultiplierTB;
 		.i_start(i_start),
 		.o_finished(o_finished),
 		.i_multiplicand(i_multiplicand),
-		.i_multiplier(i_multiplier)
-		//.i_addend(i_addend),
-		//.o_sum(o_sum),
-		//.o_carry(o_carry)
+		.i_multiplier(i_multiplier),
+		.o_product(o_product)
 	);
 
 	//reg unsigned [BITS : 0] expected;

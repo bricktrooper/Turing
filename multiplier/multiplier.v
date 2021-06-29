@@ -16,9 +16,9 @@ module Multiplier
 
 	// DATA //
 
-	input  wire [BITS - 1 : 0] i_multiplicand,
-	input  wire [BITS - 1 : 0] i_multiplier
-	//output wire [(2 * BITS) - 1 : 0] o_product   // n bits * n bits requires at most 2n bits
+	input wire [BITS - 1 : 0] i_multiplicand,
+	input wire [BITS - 1 : 0] i_multiplier,
+	output reg [(2 * BITS) - 1 : 0] o_product   // n bits * n bits requires at most 2n bits
 
 );
 	// STATE MACHINE //
@@ -71,22 +71,33 @@ module Multiplier
 		endcase
 	end
 
-	// MULTIPLY ACCUMULATOR //
+	// MULTIPLY //
 
 	wire [(2 * BITS) - 1 : 0] partial_product;
-	//wire [(2 * BITS) - 1 : 0] sum;
-	//wire carry;
 
 	// binary multiplication using bitwise AND
 	assign partial_product = multiplicand & {(2 * BITS){multiplier[0]}};
 
+	// ACCUMULATE //
+
+	wire [(2 * BITS) - 1 : 0] sum;
+
 	// accumulate partial products
-	//Adder #(.BITS(2 * BITS)) accumulator
-	//(
-	//	.i_augend(o_product),
-	//	.i_addend(partial_product),
-	//	.o_sum(sum),
-	//	.o_carry(carry)
-	//)
+	Adder #(.BITS(2 * BITS)) accumulator
+	(
+		.i_augend(o_product),
+		.i_addend(partial_product),
+		.o_sum(sum),
+		.o_carry()
+	);
+
+	// PRODUCT //
+
+	always @ (posedge i_clock) begin
+		case (start)
+			1'b0: o_product <= sum;                  // update product with latest accumulator output
+			1'b1: o_product <= {(2 * BITS){1'b0}};   // reset product to 0
+		endcase
+	end
 
 endmodule

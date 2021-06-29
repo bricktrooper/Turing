@@ -21,6 +21,7 @@ module MultiplierTB;
 	reg i_start;
 	wire o_finished;
 	reg [BITS - 1 : 0] i_multiplicand;
+	reg [BITS - 1 : 0] i_multiplier;
 
 	Multiplier #(.BITS(BITS)) multiplier
 	(
@@ -28,7 +29,8 @@ module MultiplierTB;
 		.i_reset(i_reset),
 		.i_start(i_start),
 		.o_finished(o_finished),
-		.i_multiplicand(i_multiplicand)
+		.i_multiplicand(i_multiplicand),
+		.i_multiplier(i_multiplier)
 		//.i_addend(i_addend),
 		//.o_sum(o_sum),
 		//.o_carry(o_carry)
@@ -49,11 +51,13 @@ module MultiplierTB;
 		i_reset = 0;
 		i_start = 1;
 		i_multiplicand = 11;
+		i_multiplier = 5;
 
 		# CLOCK_PERIOD;
 
 		//i_start = 0;
 		i_multiplicand = 13;
+		i_multiplier = 10;
 
 		# (CLOCK_PERIOD * BITS);
 

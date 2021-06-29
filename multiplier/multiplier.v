@@ -16,8 +16,8 @@ module Multiplier
 
 	// DATA //
 
-	input  wire [BITS - 1 : 0] i_multiplicand
-	//input  wire [BITS - 1 : 0] i_multiplier,
+	input  wire [BITS - 1 : 0] i_multiplicand,
+	input  wire [BITS - 1 : 0] i_multiplier
 	//output wire [(2 * BITS) - 1 : 0] o_product   // n bits * n bits requires at most 2n bits
 
 );
@@ -55,7 +55,20 @@ module Multiplier
 		endcase
 	end
 
-	wire [(2 * BITS) - 1 : 0] test;
-	assign test = multiplicand;
+	// MULTIPLIER //
+
+	reg [BITS - 1 : 0] multiplier;   // shift register
+
+	always @ (posedge i_clock) begin
+		case (start)
+			1'b0: begin   // right shift
+				multiplier[BITS - 1] <= 1'b0;
+				multiplier[BITS - 2 : 0] <= multiplier[BITS - 1 : 1];
+			end
+			1'b1: begin   // load input value
+				multiplier <= i_multiplier;
+			end
+		endcase
+	end
 
 endmodule

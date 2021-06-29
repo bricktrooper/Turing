@@ -2,7 +2,7 @@ module MultiplierTB;
 
 	parameter CLOCK_PERIOD = 2;
 	parameter BITS = 4;
-	//integer MAX_VALUE = $pow(2, BITS) - 1;
+	integer MAX_VALUE = $pow(2, BITS) - 1;
 
 	wire i_clock;
 
@@ -46,33 +46,24 @@ module MultiplierTB;
 		i_reset = 0;
 		i_start = 1;
 
-		i_multiplicand = 15;
-		i_multiplier = 14;
+		for (integer x = 0; x <= MAX_VALUE; x++)begin
+			for (integer y = 0; y <= MAX_VALUE; y++) begin
+				i_multiplicand = x;
+				i_multiplier = y;
+
+				# (CLOCK_PERIOD * BITS);
+
+				expected = x * y;
+				actual = o_product;
+
+				if (expected != actual)
+					$display("[%0d * %0d]: Expected %0d but result was %0d", x, y, expected, actual);
+			end
+		end
+
+		i_start = 0;
 
 		# CLOCK_PERIOD;
-		i_multiplicand = 11;
-		i_multiplier = 2;
-
-		# (CLOCK_PERIOD * BITS);
-
-		//i_start = 0;
-
-		# CLOCK_PERIOD;
-		# (CLOCK_PERIOD * BITS);
-
-		//for (integer x = 0; x <= MAX_VALUE; x++)begin
-		//	for (integer y = 0; y <= MAX_VALUE; y++) begin
-		//		i_augend = x;
-		//		i_addend = y;
-		//		# DELAY;
-
-		//		expected = x + y;
-		//		actual = {o_carry, o_sum};
-
-		//		if (expected != actual)
-		//			$display("[%0d + %0d]: Expected %0d but result was %0d", x, y, expected, actual);
-		//	end
-		//end
 
 		$finish;
 	end

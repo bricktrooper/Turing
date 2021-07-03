@@ -19,7 +19,7 @@ FLAGS += -Wtimescale
 FLAGS += -Winfloop
 FLAGS += -Wsensitivity-entire-vector
 FLAGS += -Wsensitivity-entire-array
-FLAGS += -Wfloating-nets
+#FLAGS += -Wfloating-nets
 
 FLAGS += -g 2005
 

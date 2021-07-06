@@ -26,11 +26,14 @@ async def sweep(dut, clock):
 			expected = x + y
 			actual = join(dut.carry.value, dut.sum.value)
 
+			sum = dut.sum.value.integer
+			carry = dut.carry.value.integer
+
 			if actual != expected:
-				log.error("%u + %u != %u" % (x, y, actual))
+				log.error("[sum = %u, carry = %u]: %u + %u != %u" % (sum, carry, x, y, actual))
 				return
 
-			log.success("%u + %u == %u" % (x, y, expected))
+			log.success("[sum = %u, carry = %u]: %u + %u == %u" % (sum, carry, x, y, expected))
 
 
 @cocotb.test()

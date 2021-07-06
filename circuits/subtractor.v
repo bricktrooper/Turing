@@ -4,19 +4,19 @@
 
 module Subtractor
 #(
-	parameter BITS = 8
+	parameter N = 8
 )
 (
-	input wire [BITS - 1 : 0] i_minuend,
-	input wire [BITS - 1 : 0] i_subtrahend,
-	output wire [BITS - 1 : 0] o_difference,
+	input wire [N - 1 : 0] i_minuend,
+	input wire [N - 1 : 0] i_subtrahend,
+	output wire [N - 1 : 0] o_difference,
 	output wire o_borrow
 );
 	// WIRES //
 
-	wire [BITS - 1 : 0] borrow_in;
-	wire [BITS - 1 : 0] borrow_out;
-	wire [BITS - 1 : 0] half_difference;
+	wire [N - 1 : 0] borrow_in;
+	wire [N - 1 : 0] borrow_out;
+	wire [N - 1 : 0] half_difference;
 
 	// DIFFERENCE //
 
@@ -29,7 +29,7 @@ module Subtractor
 
 	// borrow propagation
 	assign borrow_in[0] = 1'b0;
-	assign borrow_in[BITS - 1 : 1] = borrow_out[BITS - 2 : 0];
-	assign o_borrow = borrow_out[BITS - 1];
+	assign borrow_in[N - 1 : 1] = borrow_out[N - 2 : 0];
+	assign o_borrow = borrow_out[N - 1];
 
 endmodule

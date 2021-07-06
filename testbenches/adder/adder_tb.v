@@ -1,17 +1,17 @@
 module AdderTB
 #(
-	parameter BITS = 4
+	parameter N = 4
 )
 (
 	input wire clock,
 
-	input wire [BITS - 1 : 0] augend,
-	input wire [BITS - 1 : 0] addend,
-	output wire [BITS - 1 : 0] sum,
+	input wire [N - 1 : 0] augend,
+	input wire [N - 1 : 0] addend,
+	output wire [N - 1 : 0] sum,
 	output wire carry
 );
 
-	Adder #(.BITS(BITS)) adder
+	Adder #(.N(N)) adder
 	(
 		.i_augend(augend),
 		.i_addend(addend),

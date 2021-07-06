@@ -43,3 +43,6 @@ include $(shell cocotb-config --makefiles)/Makefile.sim
 
 clean::
 	@rm -rf $(ART)
+
+clean-all: clean
+	@rm -rf *.vcd

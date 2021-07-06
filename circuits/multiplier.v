@@ -4,7 +4,7 @@
 
 module Multiplier
 #(
-	parameter BITS = 8
+	parameter N = 8
 )
 (
 	// CONTROL //
@@ -16,38 +16,38 @@ module Multiplier
 
 	// DATA //
 
-	input wire [BITS - 1 : 0] i_multiplicand,
-	input wire [BITS - 1 : 0] i_multiplier,
-	output wire [(2 * BITS) - 1 : 0] o_product   // n bits * n bits requires at most 2n bits
+	input wire [N - 1 : 0] i_multiplicand,
+	input wire [N - 1 : 0] i_multiplier,
+	output wire [(2 * N) - 1 : 0] o_product   // N bits * N bits requires at most 2n bits
 
 );
 	// STATE MACHINE //
 
-	reg [BITS - 1: 0] state;
+	reg [N - 1: 0] state;
 	wire start;
 
-	assign start = i_start & (~|state[BITS - 2 : 0]);   // NOR gating to prevent more than one "hot" bit
+	assign start = i_start & (~|state[N - 2 : 0]);   // NOR gating to prevent more than one "hot" bit
 
 	always @ (posedge i_clock) begin
 		if (i_reset) begin
-			state <= {BITS{1'b0}};
+			state <= {N{1'b0}};
 		end else begin
 			state[0] <= start;
-			state[BITS - 1 : 1] <= state[BITS - 2 : 0];   // shift one-hot state
+			state[N - 1 : 1] <= state[N - 2 : 0];   // shift one-hot state
 		end
 	end
 
-	assign o_finished = state[BITS - 1];
+	assign o_finished = state[N - 1];
 
 	// MULTIPLICAND //
 
-	reg [(2 * BITS) - 1 : 0] multiplicand;   // shift register
+	reg [(2 * N) - 1 : 0] multiplicand;   // shift register
 
 	always @ (posedge i_clock) begin
 		case (start)
 			1'b0: begin   // left shift
 				multiplicand[0] <= 1'b0;
-				multiplicand[(2 * BITS) - 1 : 1] <= multiplicand[(2 * BITS) - 2 : 0];
+				multiplicand[(2 * N) - 1 : 1] <= multiplicand[(2 * N) - 2 : 0];
 			end
 			1'b1: begin   // load input value
 				multiplicand <= i_multiplicand;
@@ -57,13 +57,13 @@ module Multiplier
 
 	// MULTIPLIER //
 
-	reg [BITS - 1 : 0] multiplier;   // shift register
+	reg [N - 1 : 0] multiplier;   // shift register
 
 	always @ (posedge i_clock) begin
 		case (start)
 			1'b0: begin   // right shift
-				multiplier[BITS - 1] <= 1'b0;
-				multiplier[BITS - 2 : 0] <= multiplier[BITS - 1 : 1];
+				multiplier[N - 1] <= 1'b0;
+				multiplier[N - 2 : 0] <= multiplier[N - 1 : 1];
 			end
 			1'b1: begin   // load input value
 				multiplier <= i_multiplier;
@@ -73,18 +73,18 @@ module Multiplier
 
 	// MULTIPLY //
 
-	wire [(2 * BITS) - 1 : 0] partial_product;
+	wire [(2 * N) - 1 : 0] partial_product;
 
 	// binary multiplication using bitwise AND
-	assign partial_product = multiplicand & {(2 * BITS){multiplier[0]}};
+	assign partial_product = multiplicand & {(2 * N){multiplier[0]}};
 
 	// ACCUMULATE //
 
-	wire [(2 * BITS) - 1 : 0] sum;           // accumulator output
-	reg [(2 * BITS) - 1 : 0] accumulation;   // accumulation register
+	wire [(2 * N) - 1 : 0] sum;           // accumulator output
+	reg [(2 * N) - 1 : 0] accumulation;   // accumulation register
 
 	// accumulate partial products
-	Adder #(.BITS(2 * BITS)) accumulator
+	Adder #(.N(2 * N)) accumulator
 	(
 		.i_augend(accumulation),
 		.i_addend(partial_product),
@@ -95,7 +95,7 @@ module Multiplier
 	always @ (posedge i_clock) begin
 		case (start)
 			1'b0: accumulation = o_product;            // save latest accumulation
-			1'b1: accumulation = {(2 * BITS){1'b0}};   // reset accumulation to 0
+			1'b1: accumulation = {(2 * N){1'b0}};   // reset accumulation to 0
 		endcase
 	end
 

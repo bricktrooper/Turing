@@ -31,10 +31,10 @@ async def sweep(dut, clock):
 
 			if actual != expected:
 				log.error(f"{minuend} - {subtrahend} != {actual}")
-				log.info(f"minuend:    {minuend}")
-				log.info(f"subtrahend: {subtrahend}")
-				log.info(f"difference: {difference}")
-				log.info(f"borrow:     {borrow}")
+				log.info(f"minuend    : {minuend}")
+				log.info(f"subtrahend : {subtrahend}")
+				log.info(f"difference : {difference}")
+				log.info(f"borrow     : {borrow}")
 				return
 
 			log.success(f"{minuend} - {subtrahend} = {expected}")

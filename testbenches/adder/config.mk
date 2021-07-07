@@ -1,5 +1,5 @@
 DUT = AdderTB
-TB = adder
+TB = adder_tb
 
 CIRCUITS = ../../circuits
 

@@ -31,10 +31,10 @@ async def sweep(dut, clock):
 
 			if actual != expected:
 				log.error(f"{augend} + {addend} != {actual}")
-				log.info(f"augend: {augend}")
-				log.info(f"addend: {addend}")
-				log.info(f"sum:    {sum}")
-				log.info(f"carry:  {carry}")
+				log.info(f"augend : {augend}")
+				log.info(f"addend : {addend}")
+				log.info(f"sum    : {sum}")
+				log.info(f"carry  : {carry}")
 				return
 
 			log.success(f"{augend} + {addend} = {expected}")

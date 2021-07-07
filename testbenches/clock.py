@@ -7,6 +7,7 @@ from cocotb.triggers import Timer
 class Clock:
 
 	TIME_UNIT = "ns"
+	HOLD_TIME = 1
 
 	def __init__(self, signal, period):
 		self.signal = signal
@@ -17,9 +18,14 @@ class Clock:
 	def reset(self):
 		self.signal <= 0
 
-	async def next(self, cycles = 1):
+	async def next(self, cycles = 1, hold = False):
 		for i in range(cycles):
 			await RisingEdge(self.signal)
+			if hold:
+				await self.stall(Clock.HOLD_TIME)
+
+	async def stall(self, ps = 1):
+		await Timer(ps, "ps")
 
 	async def run(self):
 		while True:

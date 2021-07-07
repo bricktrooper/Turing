@@ -19,29 +19,29 @@ async def sweep(dut, clock):
 
 	for augend in range(VALUES):
 		for addend in range(VALUES):
-			dut.augend <= augend
-			dut.addend <= addend
+			dut.i_augend <= augend
+			dut.i_addend <= addend
 			await clock.next()
 
 			expected = augend + addend
-			actual = join(dut.sum.value, dut.carry.value)
+			actual = join(dut.o_sum.value, dut.o_carry.value)
 
-			sum = dut.sum.value.integer
-			carry = dut.carry.value.integer
+			sum = dut.o_sum.value.integer
+			carry = dut.o_carry.value.integer
 
 			if actual != expected:
 				log.error(f"{augend} + {addend} != {actual}")
-				log.info("augend: %u" % (augend))
-				log.info("augend: %u" % (addend))
-				log.info("sum:    %u" % (sum))
-				log.info("carry:  %u" % (carry))
+				log.info(f"augend: {augend}")
+				log.info(f"addend: {addend}")
+				log.info(f"sum:    {sum}")
+				log.info(f"carry:  {carry}")
 				return
 
 			log.success(f"{augend} + {addend} = {expected}")
 
 @cocotb.test()
 async def testbench(dut):
-	clock = Clock(dut.clock, 10)
+	clock = Clock(dut.i_clock, 10)
 	clock.print()
 	clock.start()
 

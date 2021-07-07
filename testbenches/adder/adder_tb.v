@@ -3,20 +3,20 @@ module AdderTB
 	parameter N = 4
 )
 (
-	input wire clock,
+	input wire i_clock,
 
-	input wire [N - 1 : 0] augend,
-	input wire [N - 1 : 0] addend,
-	output wire [N - 1 : 0] sum,
-	output wire carry
+	input wire [N - 1 : 0] i_augend,
+	input wire [N - 1 : 0] i_addend,
+	output wire [N - 1 : 0] o_sum,
+	output wire o_carry
 );
 
 	Adder #(.N(N)) adder
 	(
-		.i_augend(augend),
-		.i_addend(addend),
-		.o_sum(sum),
-		.o_carry(carry)
+		.i_augend(i_augend),
+		.i_addend(i_addend),
+		.o_sum(o_sum),
+		.o_carry(o_carry)
 	);
 
 	initial begin

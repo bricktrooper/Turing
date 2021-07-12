@@ -18,7 +18,7 @@ module Multiplier
 
 	input wire [N - 1 : 0] i_multiplicand,
 	input wire [N - 1 : 0] i_multiplier,
-	output wire [(2 * N) - 1 : 0] o_product   // N bits * N bits requires at most 2n bits
+	output wire [(2 * N) - 1 : 0] o_product   // N bits * N bits requires at most 2N bits
 
 );
 	// STATE MACHINE //
@@ -46,8 +46,8 @@ module Multiplier
 	always @ (posedge i_clock) begin
 		case (start)
 			1'b0: begin   // left shift
-				multiplicand[0] <= 1'b0;
 				multiplicand[(2 * N) - 1 : 1] <= multiplicand[(2 * N) - 2 : 0];
+				multiplicand[0] <= 1'b0;
 			end
 			1'b1: begin   // load input value
 				multiplicand <= i_multiplicand;
@@ -89,7 +89,7 @@ module Multiplier
 		.i_augend(accumulation),
 		.i_addend(partial_product),
 		.o_sum(sum),
-		.o_carry()   // sum will never exceed 2n bits
+		.o_carry()   // sum will never exceed 2N bits
 	);
 
 	always @ (posedge i_clock) begin

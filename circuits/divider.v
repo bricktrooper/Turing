@@ -21,7 +21,6 @@ module Divider
 	input wire [N - 1 : 0] i_divisor,
 	output wire [N - 1 : 0] o_quotient,   // N bits / N bits requires at most N bits
 	output wire [N - 1 : 0] o_remainder
-
 );
 	// STATE MACHINE //
 
@@ -32,11 +31,13 @@ module Divider
 
 	always @ (posedge i_clock) begin
 		if (i_reset) begin
-			state <= {N{1'b0}};
+			state <= 0;
 		end else begin
 			state[0] <= start;
 			state[N - 1 : 1] <= state[N - 2 : 0];   // shift one-hot state
 		end
+		$display("need to deal with divisor == 0 using error flag that forces o_finished early");
+		$display("also simplify the zero outs in multiplier as well");
 	end
 
 	assign o_finished = state[N - 1];
@@ -46,15 +47,12 @@ module Divider
 	reg [N - 1 : 0] dividend;   // shift register
 
 	always @ (posedge i_clock) begin
-		case (start)
-			1'b0: begin   // left shift
-				dividend[N - 1 : 1] <= dividend[N - 2 : 0];
-				dividend[0] <= 1'b0;
-			end
-			1'b1: begin   // load input value
-				dividend <= i_dividend;
-			end
-		endcase
+		if (start) begin   // load input value
+			dividend <= i_dividend;
+		end else begin   // left shift
+			dividend[N - 1 : 1] <= dividend[N - 2 : 0];
+			dividend[0] <= 1'b0;
+		end
 	end
 
 	// DIVISOR //
@@ -65,40 +63,23 @@ module Divider
 		divisor <= i_divisor;   // load input value
 	end
 
-	// REMAINDER //
-
-	reg [N - 1 : 0] remainder;        // remaining bits in the window after conditional subtraction
-	reg [N - 1 : 0] deaccumulation;   // de-accumuation shift register
-	wire [N - 1 : 0] window;           // current dividend bits
-	wire borrow;                      // borrow flag of de-accumulator
-
-	assign window[N - 1 : 1] = deaccumulation[N - 2 : 0];
-	assign window[0] = dividend[N - 1];   // "bring down" the next bit of the dividend (MSB)
-
-	assign o_remainder = remainder;
-
-	// save the latest deaccumulation
-	always @ (*) begin
-		case (borrow)
-			1'b0: remainder = difference;      // save the difference if the subtraction was possible
-			1'b1: remainder = window;  // don't subtract if divisor > partial_remainder
-		endcase
-	end
-
-	always @ (posedge i_clock) begin
-		case (start)
-			1'b0: deaccumulation <= remainder;   // save the latest remainder value
-			1'b1: deaccumulation <= {N{1'b0}};   // start with zeros
-		endcase
-	end
-
 	// DE-ACCUMULATE //
 
-	wire [N - 1 : 0] difference;   // de-accumulator output
+	wire borrow;                      // borrow flag of de-accumulator
+	wire [N - 1 : 0] difference;  // de-accumulator output
+	wire [N - 1 : 0] window;          // current dividend bits
+	reg [N - 1 : 0] remainder;        // remaining bits in the window after conditional subtraction
 
-	//assign window[N - 1 : 1] = deaccumulation[N - 2 : 0];   // left shift
-	//assign window[0] = dividend[N - 1];                     // "bring down" the next bit from the right
-	//assign window = remainder;
+	always @ (posedge i_clock) begin
+		if (start) begin
+			remainder <= 0;   // start with zeros
+		end else begin
+			remainder <= o_remainder;   // save the latest remainder value
+		end
+	end
+
+	assign window[N - 1 : 1] = remainder[N - 2 : 0];   // shift up the current remainder
+	assign window[0] = dividend[N - 1];   // "bring down" the next bit of the dividend (MSB)
 
 	// de-accumulate the dividend
 	Subtractor #(.N(N)) deaccumulator
@@ -109,6 +90,12 @@ module Divider
 		.o_borrow(borrow)
 	);
 
+	// REMAINDER //
+
+	// don't subtract if divisor > window (remainder = window)
+	// save the difference if the subtraction was possible (remainder = difference)
+	assign o_remainder = borrow ? window : difference;
+
 	// QUOTIENT //
 
 	reg [N - 1 : 0] quotient;   // shift register
@@ -117,10 +104,11 @@ module Divider
 	assign o_quotient[0] = ~borrow;                       // add a 1 if the subtraction was possible
 
 	always @ (posedge i_clock) begin
-		case (start)
-			1'b0: quotient <= o_quotient;   // save the latest quotient value
-			1'b1: quotient <= {N{1'b0}};    // start with zeros
-		endcase
+		if (start) begin
+			quotient <= 0;    // start with zeros
+		end else begin
+			quotient <= o_quotient;   // save the latest quotient value
+		end
 	end
 
 endmodule

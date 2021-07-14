@@ -41,22 +41,6 @@ module Divider
 
 	assign o_finished = state[N - 1];
 
-	// REMAINDER //
-
-	reg [N - 1 : 0] remainder;  // shift register
-
-	always @ (posedge i_clock) begin
-		case (start)
-			1'b0: begin   // left shift
-				remainder[N - 1 : 1] <= remainder[N - 2 : 0];
-				remainder[0] <= dividend[N - 1];   // shift in the next MSB of the dividend
-			end
-			1'b1: begin   // start with zeros
-				remainder <= {N{1'b0}};
-			end
-		endcase
-	end
-
 	// DIVIDEND //
 
 	reg [N - 1 : 0] dividend;   // shift register
@@ -81,36 +65,75 @@ module Divider
 		divisor <= i_divisor;   // load input value
 	end
 
-	// MULTIPLY //
+	// REMAINDER //
 
-	//wire [(2 * N) - 1 : 0] partial_product;
+	reg [N - 1 : 0] deaccumulation;   // de-accumuation shift register
+	reg [N - 1 : 0] window;           // current dividend bits
+	wire borrow;                      // borrow flag of de-accumulator
+	reg [N - 1 : 0] yolo;           // current dividend bits
 
-	//// binary multiplication using bitwise AND
-	//assign partial_product = multiplicand & {(2 * N){multiplier[0]}};
+	always @ (*) begin
+		case (start)
+			1'b0: begin   // left shift
+				window[N - 1 : 1] = deaccumulation[N - 2 : 0];
+				window[0] = dividend[N - 1];   // "bring down" the next bit of the dividend (MSB)
+			end
+			1'b1: begin
+				window = {N{1'b0}};   // start with zeros
+			end
+		endcase
+	end
 
-	//// ACCUMULATE //
+	assign o_remainder = yolo;
 
-	//wire [(2 * N) - 1 : 0] sum;           // accumulator output
-	//reg [(2 * N) - 1 : 0] accumulation;   // accumulation register
+	// save the latest deaccumulation
+	always @ (*) begin
+		case (start)
+			1'b0: begin
+				case (borrow)
+					1'b0: yolo = difference;      // save the difference if the subtraction was possible
+					1'b1: yolo = window;  // don't subtract if divisor > partial_remainder
+				endcase
+			end
+			1'b1: begin
+				yolo = {N{1'b0}};  // start with zeros
+			end
+		endcase
+	end
 
-	//// accumulate partial products
-	//Adder #(.N(2 * N)) accumulator
-	//(
-	//	.i_augend(accumulation),
-	//	.i_addend(partial_product),
-	//	.o_sum(sum),
-	//	.o_carry()   // sum will never exceed 2n bits
-	//);
+	always @ (posedge i_clock) begin
+		deaccumulation <= yolo;
+	end
 
-	//always @ (posedge i_clock) begin
-	//	case (start)
-	//		1'b0: accumulation = o_product;            // save latest accumulation
-	//		1'b1: accumulation = {(2 * N){1'b0}};   // reset accumulation to 0
-	//	endcase
-	//end
+	// DE-ACCUMULATE //
 
-	//// PRODUCT //
+	wire [N - 1 : 0] difference;   // de-accumulator output
 
-	//assign o_product = sum;
+	//assign window[N - 1 : 1] = deaccumulation[N - 2 : 0];   // left shift
+	//assign window[0] = dividend[N - 1];                     // "bring down" the next bit from the right
+	//assign window = remainder;
+
+	// de-accumulate the dividend
+	Subtractor #(.N(N)) deaccumulator
+	(
+		.i_minuend(window),
+		.i_subtrahend(divisor),
+		.o_difference(difference),
+		.o_borrow(borrow)
+	);
+
+	// QUOTIENT //
+
+	reg [N - 1 : 0] quotient;   // shift register
+
+	assign o_quotient[N - 1 : 1] = quotient[N - 2 : 0];   // left shift
+	assign o_quotient[0] = ~borrow;                       // add a 1 if the subtraction was possible
+
+	always @ (posedge i_clock) begin
+		case (start)
+			1'b0: quotient <= o_quotient;   // save the latest quotient value
+			1'b1: quotient <= {N{1'b0}};    // start with zeros
+		endcase
+	end
 
 endmodule

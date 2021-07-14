@@ -67,42 +67,29 @@ module Divider
 
 	// REMAINDER //
 
+	reg [N - 1 : 0] remainder;        // remaining bits in the window after conditional subtraction
 	reg [N - 1 : 0] deaccumulation;   // de-accumuation shift register
-	reg [N - 1 : 0] window;           // current dividend bits
+	wire [N - 1 : 0] window;           // current dividend bits
 	wire borrow;                      // borrow flag of de-accumulator
-	reg [N - 1 : 0] yolo;           // current dividend bits
 
-	always @ (*) begin
-		case (start)
-			1'b0: begin   // left shift
-				window[N - 1 : 1] = deaccumulation[N - 2 : 0];
-				window[0] = dividend[N - 1];   // "bring down" the next bit of the dividend (MSB)
-			end
-			1'b1: begin
-				window = {N{1'b0}};   // start with zeros
-			end
-		endcase
-	end
+	assign window[N - 1 : 1] = deaccumulation[N - 2 : 0];
+	assign window[0] = dividend[N - 1];   // "bring down" the next bit of the dividend (MSB)
 
-	assign o_remainder = yolo;
+	assign o_remainder = remainder;
 
 	// save the latest deaccumulation
 	always @ (*) begin
-		case (start)
-			1'b0: begin
-				case (borrow)
-					1'b0: yolo = difference;      // save the difference if the subtraction was possible
-					1'b1: yolo = window;  // don't subtract if divisor > partial_remainder
-				endcase
-			end
-			1'b1: begin
-				yolo = {N{1'b0}};  // start with zeros
-			end
+		case (borrow)
+			1'b0: remainder = difference;      // save the difference if the subtraction was possible
+			1'b1: remainder = window;  // don't subtract if divisor > partial_remainder
 		endcase
 	end
 
 	always @ (posedge i_clock) begin
-		deaccumulation <= yolo;
+		case (start)
+			1'b0: deaccumulation <= remainder;   // save the latest remainder value
+			1'b1: deaccumulation <= {N{1'b0}};   // start with zeros
+		endcase
 	end
 
 	// DE-ACCUMULATE //

@@ -26,14 +26,16 @@ module Multiplier
 	reg [N - 1: 0] state;
 	wire start;
 
-	assign start = i_start & (~|state[N - 2 : 0]);   // NOR gating to prevent more than one "hot" bit
+	// NOR gating to prevent more than one "hot" bit
+	assign start = i_start & (~|state[N - 2 : 0]);
 
 	always @ (posedge i_clock) begin
 		if (i_reset) begin
-			state <= {N{1'b0}};
+			state <= 0;
 		end else begin
+			// shift one-hot state
 			state[0] <= start;
-			state[N - 1 : 1] <= state[N - 2 : 0];   // shift one-hot state
+			state[N - 1 : 1] <= state[N - 2 : 0];
 		end
 	end
 
@@ -44,15 +46,14 @@ module Multiplier
 	reg [(2 * N) - 1 : 0] multiplicand;   // shift register
 
 	always @ (posedge i_clock) begin
-		case (start)
-			1'b0: begin   // left shift
-				multiplicand[(2 * N) - 1 : 1] <= multiplicand[(2 * N) - 2 : 0];
-				multiplicand[0] <= 1'b0;
-			end
-			1'b1: begin   // load input value
-				multiplicand <= i_multiplicand;
-			end
-		endcase
+		if (start) begin
+			// load input value
+			multiplicand <= i_multiplicand;
+		end else begin
+			// left shift
+			multiplicand[(2 * N) - 1 : 1] <= multiplicand[(2 * N) - 2 : 0];
+			multiplicand[0] <= 1'b0;
+		end
 	end
 
 	// MULTIPLIER //
@@ -60,43 +61,45 @@ module Multiplier
 	reg [N - 1 : 0] multiplier;   // shift register
 
 	always @ (posedge i_clock) begin
-		case (start)
-			1'b0: begin   // right shift
-				multiplier[N - 1] <= 1'b0;
-				multiplier[N - 2 : 0] <= multiplier[N - 1 : 1];
-			end
-			1'b1: begin   // load input value
-				multiplier <= i_multiplier;
-			end
-		endcase
+		if (start) begin
+			// load input value
+			multiplier <= i_multiplier;
+		end else begin
+			// right shift
+			multiplier[N - 1] <= 1'b0;
+			multiplier[N - 2 : 0] <= multiplier[N - 1 : 1];
+		end
 	end
 
 	// MULTIPLY //
 
 	wire [(2 * N) - 1 : 0] partial_product;
 
-	// binary multiplication using bitwise AND
+	// binary multiplication using bitwise AND with multiplier LSB
 	assign partial_product = multiplicand & {(2 * N){multiplier[0]}};
 
 	// ACCUMULATE //
 
-	wire [(2 * N) - 1 : 0] sum;           // accumulator output
-	reg [(2 * N) - 1 : 0] accumulation;   // accumulation register
+	wire [(2 * N) - 1 : 0] sum;      // accumulator output
+	reg [(2 * N) - 1 : 0] product;   // accumulation register
 
 	// accumulate partial products
 	Adder #(.N(2 * N)) accumulator
 	(
-		.i_augend(accumulation),
+		.i_augend(product),
 		.i_addend(partial_product),
 		.o_sum(sum),
 		.o_carry()   // sum will never exceed 2N bits
 	);
 
 	always @ (posedge i_clock) begin
-		case (start)
-			1'b0: accumulation = o_product;            // save latest accumulation
-			1'b1: accumulation = {(2 * N){1'b0}};   // reset accumulation to 0
-		endcase
+		if (start) begin
+			// reset product to 0
+			product <= 0;
+		end else begin
+			// save latest product
+			product <= sum;
+		end
 	end
 
 	// PRODUCT //

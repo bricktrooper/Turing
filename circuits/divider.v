@@ -20,24 +20,26 @@ module Divider
 	input wire [N - 1 : 0] i_dividend,
 	input wire [N - 1 : 0] i_divisor,
 	output wire [N - 1 : 0] o_quotient,   // N bits / N bits requires at most N bits
-	output wire [N - 1 : 0] o_remainder
+	output wire [N - 1 : 0] o_remainder,
+
+	output wire o_divide_by_zero   // asserted when divisor = 0
 );
 	// STATE MACHINE //
 
 	reg [N - 1: 0] state;
 	wire start;
 
-	assign start = i_start & (~|state[N - 2 : 0]);   // NOR gating to prevent more than one "hot" bit
+	// NOR gating to prevent more than one "hot" bit
+	assign start = i_start & (~|state[N - 2 : 0]);
 
 	always @ (posedge i_clock) begin
 		if (i_reset) begin
 			state <= 0;
 		end else begin
+			// shift one-hot state
 			state[0] <= start;
-			state[N - 1 : 1] <= state[N - 2 : 0];   // shift one-hot state
+			state[N - 1 : 1] <= state[N - 2 : 0];
 		end
-		$display("need to deal with divisor == 0 using error flag that forces o_finished early");
-		$display("also simplify the zero outs in multiplier as well");
 	end
 
 	assign o_finished = state[N - 1];
@@ -47,9 +49,11 @@ module Divider
 	reg [N - 1 : 0] dividend;   // shift register
 
 	always @ (posedge i_clock) begin
-		if (start) begin   // load input value
+		if (start) begin
+			// load input value
 			dividend <= i_dividend;
-		end else begin   // left shift
+		end else begin
+			// left shift
 			dividend[N - 1 : 1] <= dividend[N - 2 : 0];
 			dividend[0] <= 1'b0;
 		end
@@ -60,26 +64,32 @@ module Divider
 	reg [N - 1 : 0] divisor;   // normal register
 
 	always @ (posedge i_clock) begin
-		divisor <= i_divisor;   // load input value
+		// load input value
+		divisor <= i_divisor;
 	end
+
+	// NOR all divisor bits together to check for divisor == 0
+	assign o_divide_by_zero = ~|divisor;
 
 	// DE-ACCUMULATE //
 
-	wire borrow;                      // borrow flag of de-accumulator
-	wire [N - 1 : 0] difference;  // de-accumulator output
-	wire [N - 1 : 0] window;          // current dividend bits
-	reg [N - 1 : 0] remainder;        // remaining bits in the window after conditional subtraction
+	wire borrow;                   // borrow flag of de-accumulator
+	wire [N - 1 : 0] difference;   // de-accumulator output
+	wire [N - 1 : 0] window;       // current dividend bits (de-accumulator minuend)
+	reg [N - 1 : 0] remainder;     // remaining bits in the window after conditional subtraction
 
 	always @ (posedge i_clock) begin
 		if (start) begin
-			remainder <= 0;   // start with zeros
+			// start with zeros
+			remainder <= 0;
 		end else begin
-			remainder <= o_remainder;   // save the latest remainder value
+			// save the latest remainder value
+			remainder <= o_remainder;
 		end
 	end
 
 	assign window[N - 1 : 1] = remainder[N - 2 : 0];   // shift up the current remainder
-	assign window[0] = dividend[N - 1];   // "bring down" the next bit of the dividend (MSB)
+	assign window[0] = dividend[N - 1];                // "bring down" the next bit of the dividend (MSB)
 
 	// de-accumulate the dividend
 	Subtractor #(.N(N)) deaccumulator
@@ -105,9 +115,11 @@ module Divider
 
 	always @ (posedge i_clock) begin
 		if (start) begin
-			quotient <= 0;    // start with zeros
+			// start with zeros
+			quotient <= 0;
 		end else begin
-			quotient <= o_quotient;   // save the latest quotient value
+			// save the latest quotient value
+			quotient <= o_quotient;
 		end
 	end
 

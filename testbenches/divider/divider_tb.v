@@ -11,7 +11,9 @@ module DividerTB
 	input wire [N - 1 : 0] i_dividend,
 	input wire [N - 1 : 0] i_divisor,
 	output wire [N - 1 : 0] o_quotient,
-	output wire [N - 1 : 0] o_remainder
+	output wire [N - 1 : 0] o_remainder,
+
+	output wire o_divide_by_zero
 );
 
 	Divider #(.N(N)) divider
@@ -24,7 +26,8 @@ module DividerTB
 		.i_dividend(i_dividend),
 		.i_divisor(i_divisor),
 		.o_quotient(o_quotient),
-		.o_remainder(o_remainder)
+		.o_remainder(o_remainder),
+		.o_divide_by_zero(o_divide_by_zero)
 	);
 
 	initial begin

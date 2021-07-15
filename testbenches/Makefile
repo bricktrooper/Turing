@@ -21,7 +21,7 @@ FLAGS += -Wsensitivity-entire-vector
 FLAGS += -Wsensitivity-entire-array
 #FLAGS += -Wfloating-nets
 
-FLAGS += -g 2005
+FLAGS += -g2005
 
 ART += sim_build
 ART += results.xml

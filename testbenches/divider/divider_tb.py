@@ -1,7 +1,7 @@
 import log
 import cocotb
 
-from math import pow
+from math import pow, floor
 from clock import Clock
 
 async def sweep(dut, clock):
@@ -14,36 +14,68 @@ async def sweep(dut, clock):
 	dut.i_reset <= 0
 	dut.i_start <= 1
 
-	dut.i_dividend <= 6
-	dut.i_divisor <= 2
-	await clock.next(int(N) + 1)
-	return
+	dut.i_dividend <= 11
+	dut.i_divisor <= 5
+	#await clock.next()
+	#dut.i_start <= 0
+	await clock.next(int(N)+10)
 
-	for multiplicand in range(VALUES):
-		for multiplier in range(VALUES):
-			dut.i_multiplicand <= multiplicand
-			dut.i_multiplier <= multiplier
+
+	for dividend in range(VALUES):
+		for divisor in range(VALUES):
+			dut.i_dividend <= dividend
+			dut.i_divisor <= divisor
 
 			cycles = 0
 			while cycles == 0 or not dut.o_finished.value:
 				await clock.next(hold = True)   # hold to allow o_finished to change
 				cycles += 1
 
-			expected = multiplicand * multiplier
-			actual = dut.o_product.value.integer
+			# check divide by zero
+			divide_by_zero = dut.o_divide_by_zero.value.integer
+
+			if divisor == 0:
+				if divide_by_zero != 1:
+					log.error(f"Divide by zero flag was not asserted for divisor = {divisor}")
+					return
+				else:
+					log.info(f"Skip {dividend} / {divisor}")
+					log.info(f"Skip {dividend} % {divisor}")
+					continue
+
+			if divisor != 0 and divide_by_zero != 0:
+				log.error(f"Divide by zero flag was asserted for divisor = {divisor}")
+				return
+
+			# check quotient
+			expected = floor(dividend / divisor)
+			actual = dut.o_quotient.value.integer
 
 			if actual != expected:
-				log.error(f"{multiplicand} * {multiplier} != {actual}")
-				log.info(f"multiplicand : {multiplicand}")
-				log.info(f"multiplier   : {multiplier}")
-				log.info(f"product      : {actual}")
+				log.error(f"{dividend} / {divisor} != {actual}")
+				log.info(f"dividend  : {dividend}")
+				log.info(f"divisor   : {divisor}")
+				log.info(f"quotient  : {actual}")
 				return
+
+			log.success(f"{dividend} / {divisor} = {expected}")
+
+			# check remainder (modulus)
+			expected = dividend % divisor
+			actual = dut.o_remainder.value.integer
+
+			if actual != expected:
+				log.error(f"{dividend} % {divisor} != {actual}")
+				log.info(f"dividend  : {dividend}")
+				log.info(f"divisor   : {divisor}")
+				log.info(f"remainder : {actual}")
+				return
+
+			log.success(f"{dividend} % {divisor} = {expected}")
 
 			if cycles != N:
 				log.error(f"Latency was {cycles} cycles instead of {N}")
 				return
-
-			log.success(f"{multiplicand} * {multiplier} = {expected}")
 
 	dut.i_start <= 0
 	await clock.next()

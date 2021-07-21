@@ -35,7 +35,7 @@ async def sweep(dut, clock):
 				log.info(f"addend : {addend}")
 				log.info(f"sum    : {sum}")
 				log.info(f"carry  : {carry}")
-				return
+				exit(-1)
 
 			log.success(f"{augend} + {addend} = {expected}")
 

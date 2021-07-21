@@ -35,7 +35,7 @@ async def sweep(dut, clock):
 				log.info(f"subtrahend : {subtrahend}")
 				log.info(f"difference : {difference}")
 				log.info(f"borrow     : {borrow}")
-				return
+				exit(-1)
 
 			log.success(f"{minuend} - {subtrahend} = {expected}")
 

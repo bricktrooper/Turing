@@ -40,7 +40,7 @@ async def sweep(dut, clock):
 			if actual != expected:
 				log.error(f"{left} > {right} is not {bool(actual)}")
 				print_io(left, right, greater, equal, less, greater_equal, not_equal, less_equal)
-				return
+				exit(-1)
 
 			log.success(f"{left} > {right} is {bool(actual)}")
 
@@ -51,7 +51,7 @@ async def sweep(dut, clock):
 			if actual != expected:
 				log.error(f"{left} == {right} is not {bool(actual)}")
 				print_io(left, right, greater, equal, less, greater_equal, not_equal, less_equal)
-				return
+				exit(-1)
 
 			log.success(f"{left} == {right} is {bool(actual)}")
 
@@ -62,7 +62,7 @@ async def sweep(dut, clock):
 			if actual != expected:
 				log.error(f"{left} < {right} is not {bool(actual)}")
 				print_io(left, right, greater, equal, less, greater_equal, not_equal, less_equal)
-				return
+				exit(-1)
 
 			log.success(f"{left} < {right} is {bool(actual)}")
 
@@ -73,7 +73,7 @@ async def sweep(dut, clock):
 			if actual != expected:
 				log.error(f"{left} >= {right} is not {bool(actual)}")
 				print_io(left, right, greater, equal, less, greater_equal, not_equal, less_equal)
-				return
+				exit(-1)
 
 			log.success(f"{left} >= {right} is {bool(actual)}")
 
@@ -84,7 +84,7 @@ async def sweep(dut, clock):
 			if actual != expected:
 				log.error(f"{left} != {right} is not {bool(actual)}")
 				print_io(left, right, greater, equal, less, greater_equal, not_equal, less_equal)
-				return
+				exit(-1)
 
 			log.success(f"{left} != {right} is {bool(actual)}")
 
@@ -95,7 +95,7 @@ async def sweep(dut, clock):
 			if actual != expected:
 				log.error(f"{left} <= {right} is not {bool(actual)}")
 				print_io(left, right, greater, equal, less, greater_equal, not_equal, less_equal)
-				return
+				exit(-1)
 
 			log.success(f"{left} <= {right} is {bool(actual)}")
 

@@ -37,7 +37,7 @@ async def sweep(dut, clock):
 			if divisor == 0:
 				if undefined != 1:
 					log.error(f"Undefined was not asserted for divisor = {divisor}")
-					return
+					exit(-1)
 				else:
 					log.info(f"Skip {dividend} / {divisor}")
 					log.info(f"Skip {dividend} % {divisor}")
@@ -45,7 +45,7 @@ async def sweep(dut, clock):
 
 			if divisor != 0 and undefined != 0:
 				log.error(f"Undefined was asserted for divisor = {divisor}")
-				return
+				exit(-1)
 
 			# check quotient
 			expected = floor(dividend / divisor)
@@ -56,7 +56,7 @@ async def sweep(dut, clock):
 				log.info(f"dividend  : {dividend}")
 				log.info(f"divisor   : {divisor}")
 				log.info(f"quotient  : {actual}")
-				return
+				exit(-1)
 
 			log.success(f"{dividend} / {divisor} = {expected}")
 
@@ -69,13 +69,13 @@ async def sweep(dut, clock):
 				log.info(f"dividend  : {dividend}")
 				log.info(f"divisor   : {divisor}")
 				log.info(f"remainder : {actual}")
-				return
+				exit(-1)
 
 			log.success(f"{dividend} % {divisor} = {expected}")
 
 			if cycles != N:
 				log.error(f"Latency was {cycles} cycles instead of {N}")
-				return
+				exit(-1)
 
 	dut.i_start <= 0
 	await clock.next()

@@ -32,13 +32,13 @@ async def sweep(dut, clock):
 				log.info(f"multiplicand : {multiplicand}")
 				log.info(f"multiplier   : {multiplier}")
 				log.info(f"product      : {actual}")
-				return
+				exit(-1)
 
 			log.success(f"{multiplicand} * {multiplier} = {expected}")
 
 			if cycles != N:
 				log.error(f"Latency was {cycles} cycles instead of {N}")
-				return
+				exit(-1)
 
 	dut.i_start <= 0
 	await clock.next()

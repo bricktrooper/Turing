@@ -31,20 +31,20 @@ async def sweep(dut, clock):
 				await clock.next(hold = True)   # hold to allow o_finished to change
 				cycles += 1
 
-			# check divide by zero
-			divide_by_zero = dut.o_divide_by_zero.value.integer
+			# check divide by zero (undefined)
+			undefined = dut.o_undefined.value.integer
 
 			if divisor == 0:
-				if divide_by_zero != 1:
-					log.error(f"Divide by zero flag was not asserted for divisor = {divisor}")
+				if undefined != 1:
+					log.error(f"Undefined was not asserted for divisor = {divisor}")
 					return
 				else:
 					log.info(f"Skip {dividend} / {divisor}")
 					log.info(f"Skip {dividend} % {divisor}")
 					continue
 
-			if divisor != 0 and divide_by_zero != 0:
-				log.error(f"Divide by zero flag was asserted for divisor = {divisor}")
+			if divisor != 0 and undefined != 0:
+				log.error(f"Undefined was asserted for divisor = {divisor}")
 				return
 
 			# check quotient

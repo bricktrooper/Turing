@@ -22,7 +22,7 @@ module Divider
 	output wire [N - 1 : 0] o_quotient,   // N bits / N bits requires at most N bits
 	output wire [N - 1 : 0] o_remainder,
 
-	output wire o_divide_by_zero   // asserted when divisor = 0
+	output wire o_undefined   // asserted when divisor = 0
 );
 	// STATE MACHINE //
 
@@ -69,7 +69,7 @@ module Divider
 	end
 
 	// NOR all divisor bits together to check for divisor == 0
-	assign o_divide_by_zero = ~|divisor;
+	assign o_undefined = ~|divisor;
 
 	// DE-ACCUMULATE //
 

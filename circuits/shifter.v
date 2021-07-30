@@ -17,7 +17,8 @@ module Shifter
 
 	input wire i_direction,   // 1 = left, 0 = right
 	input wire i_rotate,      // 1 = rotate, 0 = shift
-	input wire [N i_iterations,
+
+	input wire [N - 1 : 0] i_iterations,
 
 	// DATA //
 
@@ -25,64 +26,84 @@ module Shifter
 	output wire [N - 1 : 0] o_value
 );
 	// STATE MACHINE //
+	//wire start;
 
-	reg [N - 1: 0] state;
-	wire start;
+	//// NOR gating to prevent more than one "hot" bit
+	//assign start = i_start & (~|state[N - 2 : 0]);
 
-	// NOR gating to prevent more than one "hot" bit
-	assign start = i_start & (~|state[N - 2 : 0]);
+	// COUNTER //
 
-	always @ (posedge i_clock) begin
-		if (i_reset) begin
-			state <= 0;
-		end else begin
-			// shift one-hot state
-			state[0] <= start;
-			state[N - 1 : 1] <= state[N - 2 : 0];
-		end
-	end
+	reg [N - 1 : 0] iterations;
+	wire [N - 1 : 0] sum;
+	wire [N - 1 : 0] increment;
 
-	assign o_finished = state[N - 1];
-
-	// ROTATE //
-
-	reg msb;                 // new MSB depending on shift or rotation
-	reg lsb;                 // new LSB depending on shift or rotation
-
-	always @ (*) begin
-		if (i_rotate) begin
-			msb <= value[0];   // new MSB = old LSB
-		end else begin
-			msb <= 1'b0;   // new MSB = 0
-		end
-	end
-
-	always @ (*) begin
-		if (i_rotate) begin
-			lsb <= value[N - 1];   // new LSB = old MSB
-		end else begin
-			lsb <= 1'b0;   // new LSB = 0
-		end
-	end
-
-	// SHIFT //
-
-	reg [N - 1 : 0] value;   // shift register
+	assign increment = 1;
 
 	always @ (posedge i_clock) begin
-		if (start) begin
-			value <= i_value;   // load input value
+		// TODO: FIX THIS TO BE START INSTEAD OF RESET
+		if (i_start) begin
+			iterations <= 0;
+		end else begin
+			iterations <= sum;
+		end
+	end
+
+	Adder #(.N(N)) incrementer
+	(
+		.i_augend(iterations),
+		.i_addend(increment),
+		.o_sum(sum),
+		.o_carry()
+	);
+
+	wire o_greater;
+	wire o_equal;
+
+	Comparator #(.N(N)) comparator
+	(
+		.i_left(iterations),
+		.i_right(i_iterations),
+
+		.o_greater(o_greater),
+		.o_equal(o_equal)
+	);
+
+	// ROTATOR //
+
+	wire msb;   // new MSB depending on shift or rotation
+	wire lsb;   // new LSB depending on shift or rotation
+
+	// if rotate then new MSB = old LSB, otherwise new MSB = 0
+	assign msb = i_rotate ? old_value[0] : 1'b0;
+
+	// if rotate then new new LSB = old MSB, otherwise new LSB = 0
+	assign lsb = i_rotate ? old_value[N - 1] : 1'b0;
+
+	// SHIFTER //
+
+	reg [N - 1 : 0] old_value;   // value before shift (register)
+	reg [N - 1 : 0] new_value;   // value after shift
+
+	always @ (*) begin
+		// TODO: FIx start?
+		if (i_start) begin
+			new_value = i_value;   // load input value
 		end else if (i_direction) begin
-			value[N - 1 : 1] <= value[N - 2 : 0];   // left shift
-			value[0] <= lsb;                        // new LSB
+			new_value[N - 1 : 1] = old_value[N - 2 : 0];   // left shift
+			new_value[0] = lsb;                            // new LSB
 		end else begin
-			value[N - 2 : 0] <= value[N - 1 : 1];   // right shift
-			value[N - 1] <= msb;                    // new MSB
+			new_value[N - 2 : 0] = old_value[N - 1 : 1];   // right shift
+			new_value[N - 1] = msb;                        // new MSB
 		end
+	end
+
+	// save new shifted / rotated value for next iteration
+	always @ (posedge i_clock) begin
+		old_value <= new_value;
 	end
 
 	// OUTPUT //
 
-	assign o_value = value;
+	assign o_value = new_value;
 
 endmodule

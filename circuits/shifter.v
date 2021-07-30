@@ -56,17 +56,16 @@ module Shifter
 		.o_carry()
 	);
 
-	wire o_greater;
-	wire o_equal;
-
 	Comparator #(.N(N)) comparator
 	(
 		.i_left(iterations),
 		.i_right(i_iterations),
-
-		.o_greater(o_greater),
-		.o_equal(o_equal)
+		.o_equal(o_finished)
 	);
+
+	// REGISTERS //
+
+	reg [N - 1 : 0] previous;   // previous value (shift register)
 
 	// ROTATOR //
 
@@ -74,36 +73,29 @@ module Shifter
 	wire lsb;   // new LSB depending on shift or rotation
 
 	// if rotate then new MSB = old LSB, otherwise new MSB = 0
-	assign msb = i_rotate ? old_value[0] : 1'b0;
+	assign msb = i_rotate ? previous[0] : 1'b0;
 
 	// if rotate then new new LSB = old MSB, otherwise new LSB = 0
-	assign lsb = i_rotate ? old_value[N - 1] : 1'b0;
+	assign lsb = i_rotate ? previous[N - 1] : 1'b0;
 
 	// SHIFTER //
 
-	reg [N - 1 : 0] old_value;   // value before shift (register)
-	reg [N - 1 : 0] new_value;   // value after shift
+	wire [N - 1 : 0] result;    // output value
+	wire [N - 1 : 0] shifted;   // shifted / rotated value
 
-	always @ (*) begin
-		// TODO: FIx start?
-		if (i_start) begin
-			new_value = i_value;   // load input value
-		end else if (i_direction) begin
-			new_value[N - 1 : 1] = old_value[N - 2 : 0];   // left shift
-			new_value[0] = lsb;                            // new LSB
-		end else begin
-			new_value[N - 2 : 0] = old_value[N - 1 : 1];   // right shift
-			new_value[N - 1] = msb;                        // new MSB
-		end
-	end
+	// shift left / right depending on the value of i_direction
+	assign shifted = i_direction ? {previous[N - 2 : 0], lsb} : {msb, previous[N - 1 : 1]};
 
-	// save new shifted / rotated value for next iteration
+	// set the output value
+	assign result = i_start ? i_value : shifted;
+
+	// save shifted / rotated value for next iteration
 	always @ (posedge i_clock) begin
-		old_value <= new_value;
+		previous <= result;
 	end
 
 	// OUTPUT //
 
-	assign o_value = new_value;
+	assign o_value = result;
 
 endmodule

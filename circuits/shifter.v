@@ -26,21 +26,21 @@ module Shifter
 	output wire [N - 1 : 0] o_value
 );
 	// STATE MACHINE //
-	//wire start;
-	//reg busy;
 
-	////// NOR gating to prevent more than one "hot" bit
-	//assign start = i_start & ~busy;
+	wire start;
+	reg busy;
 
-	//always @ (posedge i_clock) begin
-	//	if (i_reset) begin
-	//		busy <= 1'b0;
-	//	end else if (start) begin
-	//		busy <= 1'b1;
-	//	end else if (o_finished) begin
-	//		busy <= 1'b0;
-	//	end
-	//end
+	// throttling for continuous operation
+	assign start = i_start & ~busy;
+
+	// busy flag
+	always @ (posedge i_clock) begin
+		if (i_reset | o_finished) begin
+			busy <= 1'b0;
+		end else if (start) begin
+			busy <= 1'b1;
+		end
+	end
 
 	// COUNTER //
 
@@ -60,7 +60,7 @@ module Shifter
 	);
 
 	// TODO: FIX THIS TO BE START INSTEAD OF RESET
-	assign current = i_start ? 0 : sum;
+	assign current = start ? 0 : sum;
 
 	always @ (posedge i_clock) begin
 		elapsed <= current;
@@ -97,7 +97,7 @@ module Shifter
 	assign shifted = i_direction ? {previous[N - 2 : 0], lsb} : {msb, previous[N - 1 : 1]};
 
 	// set the output value
-	assign result = i_start ? i_value : shifted;
+	assign result = start ? i_value : shifted;
 
 	// save shifted / rotated value for next iteration
 	always @ (posedge i_clock) begin

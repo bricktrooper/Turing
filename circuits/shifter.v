@@ -27,43 +27,53 @@ module Shifter
 );
 	// STATE MACHINE //
 	//wire start;
+	//reg busy;
 
-	//// NOR gating to prevent more than one "hot" bit
-	//assign start = i_start & (~|state[N - 2 : 0]);
+	////// NOR gating to prevent more than one "hot" bit
+	//assign start = i_start & ~busy;
+
+	//always @ (posedge i_clock) begin
+	//	if (i_reset) begin
+	//		busy <= 1'b0;
+	//	end else if (start) begin
+	//		busy <= 1'b1;
+	//	end else if (o_finished) begin
+	//		busy <= 1'b0;
+	//	end
+	//end
 
 	// COUNTER //
 
-	reg [N - 1 : 0] iterations;
-	wire [N - 1 : 0] sum;
-	wire [N - 1 : 0] increment;
+	wire [N - 1 : 0] sum;         // incrementer output
+	wire [N - 1 : 0] increment;   // hardcoded to 1
+	wire [N - 1 : 0] current;     // current iteration count
+	reg [N - 1 : 0] elapsed;      // number of elapsed iterations (registered value of current)
 
 	assign increment = 1;
 
-	always @ (posedge i_clock) begin
-		// TODO: FIX THIS TO BE START INSTEAD OF RESET
-		if (i_start) begin
-			iterations <= 0;
-		end else begin
-			iterations <= sum;
-		end
-	end
-
 	Adder #(.N(N)) incrementer
 	(
-		.i_augend(iterations),
+		.i_augend(elapsed),
 		.i_addend(increment),
 		.o_sum(sum),
 		.o_carry()
 	);
 
+	// TODO: FIX THIS TO BE START INSTEAD OF RESET
+	assign current = i_start ? 0 : sum;
+
+	always @ (posedge i_clock) begin
+		elapsed <= current;
+	end
+
 	Comparator #(.N(N)) comparator
 	(
-		.i_left(iterations),
+		.i_left(current),
 		.i_right(i_iterations),
 		.o_equal(o_finished)
 	);
 
-	// REGISTERS //
+	// REGISTER //
 
 	reg [N - 1 : 0] previous;   // previous value (shift register)
 

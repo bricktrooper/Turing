@@ -6,7 +6,7 @@ from clock import Clock
 
 async def sweep(dut, clock):
 	clock.reset()
-	N = dut.N
+	N = int(dut.N)
 	VALUES = int(pow(2, N))
 
 	dut.i_reset <= 1

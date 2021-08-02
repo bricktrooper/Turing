@@ -14,7 +14,7 @@ def join(difference, borrow):
 
 async def sweep(dut, clock):
 	clock.reset()
-	N = dut.N
+	N = int(dut.N)
 	VALUES = int(pow(2, N))
 
 	for minuend in range(VALUES):

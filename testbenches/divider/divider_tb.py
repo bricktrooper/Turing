@@ -6,20 +6,13 @@ from clock import Clock
 
 async def sweep(dut, clock):
 	clock.reset()
-	N = dut.N
+	N = int(dut.N)
 	VALUES = int(pow(2, N))
 
 	dut.i_reset <= 1
 	await clock.next()
 	dut.i_reset <= 0
 	dut.i_start <= 1
-
-	dut.i_dividend <= 11
-	dut.i_divisor <= 5
-	#await clock.next()
-	#dut.i_start <= 0
-	await clock.next(int(N)+10)
-
 
 	for dividend in range(VALUES):
 		for divisor in range(VALUES):

@@ -14,7 +14,7 @@ def join(sum, carry):
 
 async def sweep(dut, clock):
 	clock.reset()
-	N = dut.N
+	N = int(dut.N)
 	VALUES = int(pow(2, N))
 
 	for augend in range(VALUES):

@@ -16,7 +16,7 @@ def print_io(left, right, greater, equal, less, greater_equal, not_equal, less_e
 
 async def sweep(dut, clock):
 	clock.reset()
-	N = dut.N
+	N = int(dut.N)
 	VALUES = int(pow(2, N))
 
 	for left in range(VALUES):

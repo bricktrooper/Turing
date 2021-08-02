@@ -59,7 +59,6 @@ module Shifter
 		.o_carry()
 	);
 
-	// TODO: FIX THIS TO BE START INSTEAD OF RESET
 	assign current = start ? 0 : sum;
 
 	always @ (posedge i_clock) begin

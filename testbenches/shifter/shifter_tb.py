@@ -1,8 +1,13 @@
+from warnings import resetwarnings
 import log
 import cocotb
 
 from math import pow
 from clock import Clock
+from cocotb.binary import BinaryValue
+
+LEFT = 1
+RIGHT = 0
 
 def print_io(input, output, direction, iterations, rotate):
 	log.info(f"input      : {input}")
@@ -11,9 +16,38 @@ def print_io(input, output, direction, iterations, rotate):
 	log.info(f"iterations : {iterations}")
 	log.info(f"rotate     : {rotate}")
 
+def calculate_shift(N, value, iterations, direction):
+	result = None
+	if (direction == LEFT):
+		result = BinaryValue(n_bits = N + iterations, value = value << iterations, bigEndian = False)
+		result = result[N - 1 : 0]
+	elif (direction == RIGHT):
+		result = BinaryValue(n_bits = N, value = value >> iterations, bigEndian = False)
+	else:
+		log.error(f"Invalid direction '{direction}'")
+		exit(-1)
+
+	return result
+
+def calculate_rotation(N, value, iterations, direction):
+	result = BinaryValue(value)
+	for i in range(iterations):
+		result = BinaryValue(n_bits = N, value = result.integer, bigEndian = False)
+		msb = result[N - 1].integer
+		lsb = result[0].integer
+		result = calculate_shift(N, result, 1, direction)
+		if (direction == LEFT):
+			result[0] = msb
+		elif (direction == RIGHT):
+			result[N - 1] = lsb
+		else:
+			log.error(f"Invalid direction '{direction}'")
+			exit(-1)
+	return result
+
 async def sweep(dut, clock):
 	clock.reset()
-	N = dut.N
+	N = int(dut.N)
 	VALUES = int(pow(2, N))
 	LEFT = 1
 	RIGHT = 0
@@ -27,8 +61,19 @@ async def sweep(dut, clock):
 
 	rotate = 0
 	direction = 1
-	out = bin(0b1011 << 1)
-	print(out[0:3])
+
+	yolo = 11
+	yolo = calculate_rotation(N, yolo, 1, LEFT)
+	print(yolo)
+	yolo = calculate_rotation(N, yolo.integer, 1, LEFT)
+	print(yolo)
+	yolo = calculate_rotation(N, yolo.integer, 1, LEFT)
+	print(yolo)
+	yolo = calculate_rotation(N, yolo.integer, 1, 2)
+	print(yolo)
+	yolo = calculate_rotation(N, yolo.integer, 1, LEFT)
+	print(yolo)
+	return
 
 	for rotate in (0,1):
 		for direction in (LEFT, RIGHT):

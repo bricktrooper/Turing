@@ -1,3 +1,4 @@
+from re import L
 from warnings import resetwarnings
 import log
 import cocotb
@@ -8,6 +9,9 @@ from cocotb.binary import BinaryValue
 
 LEFT = 1
 RIGHT = 0
+
+SHIFT = 0
+ROTATE = 1
 
 def print_io(input, output, direction, iterations, rotate):
 	log.info(f"input      : {input}")
@@ -30,7 +34,7 @@ def calculate_shift(N, value, iterations, direction):
 	return result
 
 def calculate_rotation(N, value, iterations, direction):
-	result = BinaryValue(value)
+	result = BinaryValue(n_bits = N, value = value, bigEndian = False)
 	for i in range(iterations):
 		result = BinaryValue(n_bits = N, value = result.integer, bigEndian = False)
 		msb = result[N - 1].integer
@@ -44,6 +48,28 @@ def calculate_rotation(N, value, iterations, direction):
 			log.error(f"Invalid direction '{direction}'")
 			exit(-1)
 	return result
+
+def calculate_expected(N, value, iterations, direction, rotate):
+	if (rotate == SHIFT):
+		return calculate_shift(N, value, iterations, direction)
+	elif (rotate == ROTATE):
+		return calculate_rotation(N, value, iterations, direction)
+	else:
+		log.error(f"Invalid rotate flag '{rotate}'")
+		exit(-1)
+
+def get_symbol(value, iterations, direction, rotate):
+	if (rotate == SHIFT and direction == LEFT):
+		return "<<"
+	elif (rotate == SHIFT and direction == RIGHT):
+		return ">>"
+	elif (rotate == ROTATE and direction == LEFT):
+		return "<<|"
+	elif (rotate == ROTATE and direction == RIGHT):
+		return "|>>"
+	else:
+		log.error(f"Invalid direction '{direction}' and/or rotate flag '{rotate}'")
+		exit(-1)
 
 async def sweep(dut, clock):
 	clock.reset()
@@ -59,51 +85,40 @@ async def sweep(dut, clock):
 
 	# LEFT SHIFT #
 
-	rotate = 0
-	direction = 1
-
-	yolo = 11
-	yolo = calculate_rotation(N, yolo, 1, LEFT)
-	print(yolo)
-	yolo = calculate_rotation(N, yolo.integer, 1, LEFT)
-	print(yolo)
-	yolo = calculate_rotation(N, yolo.integer, 1, LEFT)
-	print(yolo)
-	yolo = calculate_rotation(N, yolo.integer, 1, 2)
-	print(yolo)
-	yolo = calculate_rotation(N, yolo.integer, 1, LEFT)
-	print(yolo)
-	return
-
-	for rotate in (0,1):
+	for rotate in (SHIFT, ROTATE):
 		for direction in (LEFT, RIGHT):
 			for iterations in range(VALUES):
 				for value in range(VALUES):
-					#print(rotate, direction, iterations, value)
+					dut.i_value <= value
+					dut.i_iterations <= iterations
+					dut.i_rotate <= rotate
+					dut.i_direction <= direction
 
-					#dut.i_value <= value
-					#dut.i_rotate <= rotate
-					#dut.i_direction <= direction
+					cycles = 0
+					if iterations == 0:
+						await clock.stall()   # finishes instantaneously so allow o_finished to change
+					else:
+						while cycles == 0 or not dut.o_finished.value:
+							await clock.next(hold = True)   # hold to allow o_finished to change
+							cycles += 1
 
-					#cycles = 0
-					#while cycles == 0 or not dut.o_finished.value:
-					#	await clock.next(hold = True)   # hold to allow o_finished to change
-					#	cycles += 1
+					expected = calculate_expected(N, value, iterations, direction, rotate)
+					actual = dut.o_value.value.integer
+					symbol = get_symbol(N, iterations, direction, rotate)
+					value = BinaryValue(n_bits = N, value = value, bigEndian = False)
 
-					expected = value >> iterations
+					if actual != expected:
+						log.error(f"{value} {symbol} {iterations} != {actual}")
+						print_io(value, actual, direction, iterations, rotate)
+						exit(-1)
 
-					#actual = dut.o_value.value.integer
+					log.success(f"{value} {symbol} {iterations} == {expected}")
 
-					#if actual != expected:
-					#	log.error(f"{value} >> {iterations} != {actual}")
-					#	print_io(value, actual, direction, iterations, rotate)
-					#	exit(-1)
+					if cycles != iterations:
+						log.error(f"Latency was {cycles} cycles instead of {iterations}")
+						exit(-1)
 
-					#log.success(f"{value} >> {iterations} == {expected}")
-
-					#if cycles != N:
-					#	log.error(f"Latency was {cycles} cycles instead of {N}")
-					#	exit(-1)
+					await clock.next()   # wait an extra cycle for the busy register to clear
 
 	dut.i_start <= 0
 	await clock.next()

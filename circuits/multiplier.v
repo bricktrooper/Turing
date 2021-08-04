@@ -18,8 +18,13 @@ module Multiplier
 
 	input wire [N - 1 : 0] i_multiplicand,
 	input wire [N - 1 : 0] i_multiplier,
-	output wire [(2 * N) - 1 : 0] o_product   // N bits * N bits requires at most 2N bits
+	output wire [(2 * N) - 1 : 0] o_product,   // N bits * N bits requires at most 2N bits
 
+	// ADDER //
+
+	output wire [(2 * N) - 1 : 0] o_adder_augend,
+	output wire [(2 * N) - 1 : 0] o_adder_addend,
+	input wire [(2 * N) - 1 : 0] i_adder_sum
 );
 	// STATE MACHINE //
 
@@ -84,13 +89,10 @@ module Multiplier
 	reg [(2 * N) - 1 : 0] product;   // accumulation register
 
 	// accumulate partial products
-	Adder #(.N(2 * N)) accumulator
-	(
-		.i_augend(product),
-		.i_addend(partial_product),
-		.o_sum(sum),
-		.o_carry()   // sum will never exceed 2N bits
-	);
+	assign o_adder_augend = product;
+	assign o_adder_addend = partial_product;
+	assign sum = i_adder_sum;
+	// carry is not required because the sum will never exceed 2N bits
 
 	always @ (posedge i_clock) begin
 		if (start) begin

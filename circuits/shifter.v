@@ -23,7 +23,19 @@ module Shifter
 	// DATA //
 
 	input wire [N - 1 : 0] i_value,
-	output wire [N - 1 : 0] o_value
+	output wire [N - 1 : 0] o_value,
+
+	// ADDER //
+
+	output wire [N - 1 : 0] o_adder_augend,
+	output wire [N - 1 : 0] o_adder_addend,
+	input wire [N - 1 : 0] i_adder_sum,
+
+	// COMPARATOR //
+
+	output wire [N - 1 : 0] o_comparator_left,
+	output wire [N - 1 : 0] o_comparator_right,
+	input wire i_comparator_equal
 );
 	// STATE MACHINE //
 
@@ -52,13 +64,10 @@ module Shifter
 	assign increment = 1;
 
 	// increment each time a shift or rotate occurs
-	Adder #(.N(N)) incrementer
-	(
-		.i_augend(elapsed),
-		.i_addend(increment),
-		.o_sum(sum),
-		.o_carry()
-	);
+	assign o_adder_augend = elapsed;
+	assign o_adder_addend = increment;
+	assign sum = i_adder_sum;
+	// carry doesn't matter because iterations > N becomes meaningless
 
 	assign current = start ? 0 : sum;
 
@@ -68,12 +77,9 @@ module Shifter
 	end
 
 	// check if the required number of shifts have occurred
-	Comparator #(.N(N)) comparator
-	(
-		.i_left(current),
-		.i_right(i_iterations),
-		.o_equal(o_finished)
-	);
+	assign o_comparator_left = current;
+	assign o_comparator_right = i_iterations;
+	assign o_finished = i_comparator_equal;
 
 	// SHIFTER / ROTATOR //
 

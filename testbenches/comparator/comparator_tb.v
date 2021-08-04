@@ -29,8 +29,10 @@ module ComparatorTB
 	);
 
 	initial begin
+`ifdef WAVES
 		$dumpfile("comparator.vcd");
 		$dumpvars(0, comparator);
+`endif
 	end
 
 endmodule

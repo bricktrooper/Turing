@@ -112,7 +112,7 @@ async def sweep(dut, clock):
 						print_io(value, actual, direction, iterations, rotate)
 						exit(-1)
 
-					log.success(f"{value} {symbol} {iterations} == {expected}")
+					log.success(f"{value} {symbol} {iterations} = {expected}")
 
 					if cycles != iterations:
 						log.error(f"Latency was {cycles} cycles instead of {iterations}")

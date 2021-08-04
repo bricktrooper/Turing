@@ -20,8 +20,10 @@ module AdderTB
 	);
 
 	initial begin
+`ifdef WAVES
 		$dumpfile("adder.vcd");
 		$dumpvars(0, adder);
+`endif
 	end
 
 endmodule

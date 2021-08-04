@@ -20,8 +20,10 @@ module SubtractorTB
 	);
 
 	initial begin
+`ifdef WAVES
 		$dumpfile("subtractor.vcd");
 		$dumpvars(0, subtractor);
+`endif
 	end
 
 endmodule

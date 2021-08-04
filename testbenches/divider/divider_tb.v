@@ -31,8 +31,10 @@ module DividerTB
 	);
 
 	initial begin
+`ifdef WAVES
 		$dumpfile("divider.vcd");
 		$dumpvars(0, divider);
+`endif
 	end
 
 endmodule

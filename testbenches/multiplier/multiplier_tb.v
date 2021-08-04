@@ -26,8 +26,10 @@ module MultiplierTB
 	);
 
 	initial begin
+`ifdef WAVES
 		$dumpfile("multiplier.vcd");
 		$dumpvars(0, multiplier);
+`endif
 	end
 
 endmodule

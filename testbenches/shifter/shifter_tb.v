@@ -30,8 +30,10 @@ module ShifterTB
 	);
 
 	initial begin
+`ifdef WAVES
 		$dumpfile("shifter.vcd");
 		$dumpvars(0, shifter);
+`endif
 	end
 
 endmodule

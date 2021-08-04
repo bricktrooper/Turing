@@ -51,6 +51,7 @@ module Shifter
 
 	assign increment = 1;
 
+	// increment each time a shift or rotate occurs
 	Adder #(.N(N)) incrementer
 	(
 		.i_augend(elapsed),
@@ -61,10 +62,12 @@ module Shifter
 
 	assign current = start ? 0 : sum;
 
+	// save the latest counter value
 	always @ (posedge i_clock) begin
 		elapsed <= current;
 	end
 
+	// check if the required number of shifts have occurred
 	Comparator #(.N(N)) comparator
 	(
 		.i_left(current),
@@ -72,39 +75,24 @@ module Shifter
 		.o_equal(o_finished)
 	);
 
-	// REGISTER //
+	// SHIFTER / ROTATOR //
 
-	reg [N - 1 : 0] previous;   // previous value (shift register)
+	reg [N - 1 : 0] value;      // previous value (shift register)
+	wire [N - 1 : 0] shifted;   // shifted or rotated value
+	wire msb;                   // new MSB depending on shift or rotation
+	wire lsb;                   // new LSB depending on shift or rotation
 
-	// ROTATOR //
+	assign msb = i_rotate ? value[0] : 1'b0;       // if rotate then new MSB = old LSB, otherwise new MSB = 0
+	assign lsb = i_rotate ? value[N - 1] : 1'b0;   // if rotate then new LSB = old MSB, otherwise new LSB = 0
 
-	wire msb;   // new MSB depending on shift or rotation
-	wire lsb;   // new LSB depending on shift or rotation
+	// shift left or right depending on the value of i_direction
+	assign shifted = i_direction ? {value[N - 2 : 0], lsb} : {msb, value[N - 1 : 1]};
 
-	// if rotate then new MSB = old LSB, otherwise new MSB = 0
-	assign msb = i_rotate ? previous[0] : 1'b0;
-
-	// if rotate then new new LSB = old MSB, otherwise new LSB = 0
-	assign lsb = i_rotate ? previous[N - 1] : 1'b0;
-
-	// SHIFTER //
-
-	wire [N - 1 : 0] result;    // output value
-	wire [N - 1 : 0] shifted;   // shifted / rotated value
-
-	// shift left / right depending on the value of i_direction
-	assign shifted = i_direction ? {previous[N - 2 : 0], lsb} : {msb, previous[N - 1 : 1]};
-
-	// set the output value
-	assign result = start ? i_value : shifted;
-
-	// save shifted / rotated value for next iteration
+	// save shifted or rotated value for next iteration
 	always @ (posedge i_clock) begin
-		previous <= result;
+		value <= o_value;
 	end
 
-	// OUTPUT //
-
-	assign o_value = result;
+	assign o_value = start ? i_value : shifted;
 
 endmodule

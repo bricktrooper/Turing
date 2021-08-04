@@ -31,6 +31,7 @@ ART += sim_build
 ART += results.xml
 ART += __pycache__
 ART += ../__pycache__
+ART += *.out
 
 SIM ?= icarus
 TOPLEVEL_LANG ?= verilog
@@ -48,6 +49,10 @@ include $(shell cocotb-config --makefiles)/Makefile.sim
 simulate: sim
 
 waves: simulate
+
+compile: $(SRC)
+	@for source in $(SRC); do echo "IVERILOG $$source"; done
+	@iverilog $(FLAGS) -o sim.out $^
 
 clean::
 	@for artifact in $(ART); do echo "RM $$artifact"; done

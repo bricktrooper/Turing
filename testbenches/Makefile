@@ -1,11 +1,20 @@
 .PHONY:
+compile:
+	$(MAKE) compile -C adder
+	$(MAKE) compile -C subtractor
+	$(MAKE) compile -C multiplier
+	$(MAKE) compile -C divider
+	$(MAKE) compile -C comparator
+	$(MAKE) compile -C shifter
+
+.PHONY:
 simulate:
-	$(MAKE) -C adder
-	$(MAKE) -C subtractor
-	$(MAKE) -C multiplier
-	$(MAKE) -C divider
-	$(MAKE) -C comparator
-	$(MAKE) -C shifter
+	$(MAKE) simulate -C adder
+	$(MAKE) simulate -C subtractor
+	$(MAKE) simulate -C multiplier
+	$(MAKE) simulate -C divider
+	$(MAKE) simulate -C comparator
+	$(MAKE) simulate -C shifter
 
 .PHONY:
 waves:

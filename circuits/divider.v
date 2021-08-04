@@ -22,7 +22,14 @@ module Divider
 	output wire [N - 1 : 0] o_quotient,   // N bits / N bits requires at most N bits
 	output wire [N - 1 : 0] o_remainder,
 
-	output wire o_undefined   // asserted when divisor = 0
+	output wire o_undefined,   // asserted when divisor = 0
+
+	// SUBTRACTOR //
+
+	output wire [N - 1 : 0] o_subtractor_minuend,
+	output wire [N - 1 : 0] o_subtractor_subtrahend,
+	input wire [N - 1 : 0] i_subtractor_difference,
+	input wire i_subtractor_borrow
 );
 	// STATE MACHINE //
 
@@ -92,13 +99,10 @@ module Divider
 	assign window[0] = dividend[N - 1];                // "bring down" the next bit of the dividend (MSB)
 
 	// de-accumulate the dividend
-	Subtractor #(.N(N)) deaccumulator
-	(
-		.i_minuend(window),
-		.i_subtrahend(divisor),
-		.o_difference(difference),
-		.o_borrow(borrow)
-	);
+	assign o_subtractor_minuend = window;
+	assign o_subtractor_subtrahend = divisor;
+	assign difference = i_subtractor_difference;
+	assign borrow = i_subtractor_borrow;
 
 	// REMAINDER //
 

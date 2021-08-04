@@ -15,6 +15,18 @@ module DividerTB
 
 	output wire o_undefined
 );
+	wire [N - 1 : 0] subtractor_minuend;
+	wire [N - 1 : 0] subtractor_subtrahend;
+	wire [N - 1 : 0] subtractor_difference;
+	wire subtractor_borrow;
+
+	Subtractor #(.N(N)) Subtractor
+	(
+		.i_minuend(subtractor_minuend),
+		.i_subtrahend(subtractor_subtrahend),
+		.o_difference(subtractor_difference),
+		.o_borrow(subtractor_borrow)
+	);
 
 	Divider #(.N(N)) divider
 	(
@@ -27,7 +39,12 @@ module DividerTB
 		.i_divisor(i_divisor),
 		.o_quotient(o_quotient),
 		.o_remainder(o_remainder),
-		.o_undefined(o_undefined)
+		.o_undefined(o_undefined),
+
+		.o_subtractor_minuend(subtractor_minuend),
+		.o_subtractor_subtrahend(subtractor_subtrahend),
+		.i_subtractor_difference(subtractor_difference),
+		.i_subtractor_borrow(subtractor_borrow)
 	);
 
 	initial begin

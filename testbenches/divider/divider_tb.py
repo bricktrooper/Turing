@@ -32,8 +32,8 @@ async def sweep(dut, clock):
 					log.error(f"Undefined was not asserted for divisor = {divisor}")
 					exit(-1)
 				else:
-					log.info(f"Skip {dividend} / {divisor}")
-					log.info(f"Skip {dividend} % {divisor}")
+					log.success(f"{dividend} / {divisor} = undefined")
+					log.success(f"{dividend} % {divisor} = undefined")
 					continue
 
 			if divisor != 0 and undefined != 0:

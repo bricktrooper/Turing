@@ -9,6 +9,8 @@ module ALUTB
 	input wire start,
 	output wire finished,
 
+	input wire [4:0] opcode,
+
 	input wire [N - 1 : 0] A,
 	input wire [N - 1 : 0] B,
 	output wire [N - 1 : 0] Y,
@@ -21,6 +23,7 @@ module ALUTB
 		.reset(reset),
 		.start(start),
 		.finished(finished),
+		.opcode(opcode),
 		.A(A),
 		.B(B),
 		.Y(Y),

@@ -1,31 +1,33 @@
-/* ========================================================================================================
- * |                                      ALU (Arithmetic Logic Unit)                                     |
- * | ---------------------------------------------------------------------------------------------------- |
- * | OPERATION                | COMMAND | OPCODE  | OPERAND #1 (A) | OPERAND #2 (B) | RESULT (Y)          |
- * | ---------------------------------------------------------------------------------------------------- |
- * | unsigned add             | add     | 00000   | addend         | augend         | sum                 |
- * | unsigned subtract        | sub     | 00001   | minuend        | subtrahend     | difference          |
- * | unsigned multiply        | mul     | 00010   | multiplicand   | multiplier     | product             |
- * | unsigned divide          | div     | 00011   | dividend       | divisor        | quotient, remainder |
- * | less than                | lt      | 00100   | left           | right          | result              |
- * | greater than             | gt      | 00101   | left           | right          | result              |
- * | equal to                 | eq      | 00110   | left           | right          | result              |
- * | less than or equal to    | le      | 00111   | left           | right          | result              |
- * | greater than or equal to | ge      | 01000   | left           | right          | result              |
- * | not equal                | ne      | 01001   | left           | right          | result              |
- * | logical shift left       | lsl     | 01010   | value          | iterations     | result              |
- * | logical shift right      | lsr     | 01011   | value          | iterations     | result              |
- * | logical rotate left      | lrl     | 01100   | value          | iterations     | result              |
- * | logical rotate right     | lrr     | 01101   | value          | iterations     | result              |
- * | bitwise and              | and     | 01110   | left           | right          | result              |
- * | bitwise or               | or      | 01111   | left           | right          | result              |
- * | bitwise not              | not     | 10000   | value          | ----------     | result              |
- * | bitwise xor              | xor     | 10001   | left           | right          | result              |
- * | bitwise nand             | nand    | 10010   | left           | right          | result              |
- * | bitwise nor              | nor     | 10011   | left           | right          | result              |
- * | bitwise xnor             | xnor    | 10100   | left           | right          | result              |
- * | passthrough              | nop     | default | value          | ----------     | result              |
- * ======================================================================================================== */
+/*
+========================================================================================================
+|                                      ALU (Arithmetic Logic Unit)                                     |
+| ---------------------------------------------------------------------------------------------------- |
+| OPERATION                | COMMAND | OPCODE  | OPERAND #1 (A) | OPERAND #2 (B) | RESULT (Y)          |
+| ---------------------------------------------------------------------------------------------------- |
+| unsigned add             | add     | 00000   | addend         | augend         | sum                 |
+| unsigned subtract        | sub     | 00001   | minuend        | subtrahend     | difference          |
+| unsigned multiply        | mul     | 00010   | multiplicand   | multiplier     | product             |
+| unsigned divide          | div     | 00011   | dividend       | divisor        | quotient, remainder |
+| less than                | lt      | 00100   | left           | right          | result              |
+| greater than             | gt      | 00101   | left           | right          | result              |
+| equal to                 | eq      | 00110   | left           | right          | result              |
+| less than or equal to    | le      | 00111   | left           | right          | result              |
+| greater than or equal to | ge      | 01000   | left           | right          | result              |
+| not equal                | ne      | 01001   | left           | right          | result              |
+| logical shift left       | lsl     | 01010   | value          | iterations     | result              |
+| logical shift right      | lsr     | 01011   | value          | iterations     | result              |
+| logical rotate left      | lrl     | 01100   | value          | iterations     | result              |
+| logical rotate right     | lrr     | 01101   | value          | iterations     | result              |
+| bitwise and              | and     | 01110   | left           | right          | result              |
+| bitwise or               | or      | 01111   | left           | right          | result              |
+| bitwise not              | not     | 10000   | value          | ----------     | result              |
+| bitwise xor              | xor     | 10001   | left           | right          | result              |
+| bitwise nand             | nand    | 10010   | left           | right          | result              |
+| bitwise nor              | nor     | 10011   | left           | right          | result              |
+| bitwise xnor             | xnor    | 10100   | left           | right          | result              |
+| passthrough              | nop     | default | value          | ----------     | result              |
+========================================================================================================
+*/
 
 `define add    5'b00000
 `define sub    5'b00001
@@ -60,11 +62,14 @@ module ALU
 	input wire start,
 	output wire finished,
 
-	input wire [N - 1 : 0] A,
-	input wire [N - 1 : 0] B,
-	output wire [N - 1 : 0] Y,
-	output wire [N - 1 : 0] X
+	input wire [4:0] opcode,
+
+	input wire [N - 1 : 0] A,    // left input (primary)
+	input wire [N - 1 : 0] B,    // right input (secondary)
+	output wire [N - 1 : 0] Y,   // low output (primary)
+	output wire [N - 1 : 0] X    // high output (secondary)
 );
+	// ===================== ARITHMETIC CIRCUITS ===================== //
 
 	// ADDER //
 
@@ -152,6 +157,8 @@ module ALU
 		.i_subtractor_borrow(divider_subtractor_borrow)
 	);
 
+	// ===================== LOGIC CIRCUITS ===================== //
+
 	// COMPARATOR //
 
 	wire [N - 1 : 0] comparator_left;
@@ -209,5 +216,82 @@ module ALU
 		.o_comparator_right(shifter_comparator_right),
 		.i_comparator_equal(shifter_comparator_equal)
 	);
+
+	// OPCODE DECODER //
+
+	wire opcode_add;
+	wire opcode_sub;
+	wire opcode_mul;
+	wire opcode_div;
+	wire opcode_lt;
+	wire opcode_gt;
+	wire opcode_eq;
+	wire opcode_le;
+	wire opcode_ge;
+	wire opcode_ne;
+	wire opcode_lsl;
+	wire opcode_lsr;
+	wire opcode_lrl;
+	wire opcode_lrr;
+	wire opcode_and;
+	wire opcode_or;
+	wire opcode_not;
+	wire opcode_xor;
+	wire opcode_nand;
+	wire opcode_nor;
+	wire opcode_xnor;
+
+	reg decoded;
+
+	always @ (*) begin
+		case (opcode)
+			`add    : decoded = 21'b000000000000000000001;
+			`sub    : decoded = 21'b000000000000000000010;
+			`mul    : decoded = 21'b000000000000000000100;
+			`div    : decoded = 21'b000000000000000001000;
+			`lt     : decoded = 21'b000000000000000010000;
+			`gt     : decoded = 21'b000000000000000100000;
+			`eq     : decoded = 21'b000000000000001000000;
+			`le     : decoded = 21'b000000000000010000000;
+			`ge     : decoded = 21'b000000000000100000000;
+			`ne     : decoded = 21'b000000000001000000000;
+			`lsl    : decoded = 21'b000000000010000000000;
+			`lsr    : decoded = 21'b000000000100000000000;
+			`lrl    : decoded = 21'b000000001000000000000;
+			`lrr    : decoded = 21'b000000010000000000000;
+			`and    : decoded = 21'b000000100000000000000;
+			`or     : decoded = 21'b000001000000000000000;
+			`not    : decoded = 21'b000010000000000000000;
+			`xor    : decoded = 21'b000100000000000000000;
+			`nand   : decoded = 21'b001000000000000000000;
+			`nor    : decoded = 21'b010000000000000000000;
+			`xnor   : decoded = 21'b100000000000000000000;
+			default : decoded = 21'b000000000000000000000;   // nop
+		endcase
+	end
+
+	assign {
+		opcode_add,
+		opcode_sub,
+		opcode_mul,
+		opcode_div,
+		opcode_lt,
+		opcode_gt,
+		opcode_eq,
+		opcode_le,
+		opcode_ge,
+		opcode_ne,
+		opcode_lsl,
+		opcode_lsr,
+		opcode_lrl,
+		opcode_lrr,
+		opcode_and,
+		opcode_or,
+		opcode_not,
+		opcode_xor,
+		opcode_nand,
+		opcode_nor,
+		opcode_xnor
+	} = decoded;
 
 endmodule

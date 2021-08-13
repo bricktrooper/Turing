@@ -58,8 +58,6 @@ clean::
 	@for artifact in $(ART); do echo "RM $$artifact"; done
 	@rm -rf $(ART)
 
-clean-waves:
+clean-waves: clean
 	@echo "RM *.vcd"
 	@rm -rf *.vcd
-
-clean-all: clean clean-waves

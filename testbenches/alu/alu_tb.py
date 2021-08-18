@@ -13,9 +13,10 @@ async def testbench(dut):
 
 	#await sweep(dut, clock)
 	# TODO: Rewrite the sweep tests but give them the module IO signals as arguments so we can reuse the tests here
-	dut.A <= 11
-	dut.B <= 5
-	await clock.next(2)
+	dut.A <= 7
+	dut.B <= 3
+	dut.opcode <= 1
+	await clock.next(dut.N.value)
 	#print(dut.Y.value.integer)
 
 	clock.stop()

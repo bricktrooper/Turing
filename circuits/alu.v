@@ -74,16 +74,21 @@ module ALU
 
 	// ADDER //
 
-	wire [(2 * N) - 1 : 0] adder_augend;
-	wire [(2 * N) - 1 : 0] adder_addend;
-	wire [(2 * N) - 1 : 0] adder_sum;
+	wire [N - 1 : 0] adder_augend;
+	wire [N - 1 : 0] adder_addend;
+	wire [N - 1 : 0] adder_sum;
+
+	wire [(2 * N) - 1 : 0] adder_full_augend;
+	wire [(2 * N) - 1 : 0] adder_full_addend;
+	wire [(2 * N) - 1 : 0] adder_full_sum;
+
 	wire adder_carry;
 
 	Adder #(.N(2 * N)) adder
 	(
-		.i_augend(adder_augend),
-		.i_addend(adder_addend),
-		.o_sum(adder_sum),
+		.i_augend(adder_full_augend),
+		.i_addend(adder_full_addend),
+		.o_sum(adder_full_sum),
 		.o_carry(adder_carry)
 	);
 
@@ -220,6 +225,17 @@ module ALU
 		.i_comparator_equal(shifter_comparator_equal)
 	);
 
+	// BITWISE OPERATORS //
+
+	wire [N - 1 : 0] and_result;
+	wire [N - 1 : 0] or_result;
+	wire [N - 1 : 0] not_result;
+	wire [N - 1 : 0] xor_result;
+	wire [N - 1 : 0] nand_result;
+	wire [N - 1 : 0] nor_result;
+	wire [N - 1 : 0] xnor_result;
+	wire [N - 1 : 0] nop_result;
+
 	// ===================== OPCODE DECODER ===================== //
 
 	wire opcode_add;
@@ -304,10 +320,15 @@ module ALU
 
 	// ADDER //
 
-	assign adder_augend = {{N{1'b0}}, A};
-	assign adder_addend = {{N{1'b0}}, B};
+	assign adder_augend = A;
+	assign adder_addend = B;
 	//assign Y = adder_sum[N - 1 : 0];
 	//wire adder_carry;
+
+	// truncate top N bits
+	assign adder_full_augend[N - 1 : 0] = {{N{1'b0}}, adder_augend};
+	assign adder_full_addend[N - 1 : 0] = {{N{1'b0}}, adder_addend};
+	assign adder_sum = adder_full_sum[N - 1 : 0];
 
 	// SUBTRACTOR //
 
@@ -369,6 +390,18 @@ module ALU
 	//wire [N - 1 : 0] shifter_comparator_right;
 	//wire shifter_comparator_equal;
 
+	// BITWISE OPERATORS //
+
+	// NOTE: B is not used for unary operators
+	assign and_result = A & B;
+	assign or_result = A | B;
+	assign not_result = ~A;
+	assign xor_result = A ^ B;
+	assign nand_result = A ~& B;
+	assign nor_result = A ~| B;
+	assign xnor_result = A ~^ B;
+	assign nop_result = A;
+
 	// ===================== STATE MACHINE CONTROLS ===================== //
 
 	// TODO: start should only happen when the main ALU start is asserted
@@ -376,6 +409,36 @@ module ALU
 	// ===================== OUTPUT MUX ===================== //
 
 	reg [N - 1 : 0] result;
+
+	always @ (*) begin
+		case (opcode)
+			`add    : result = adder_sum;
+			`sub    : result = subtractor_difference;
+			`mul    : result = multiplier_product;
+			`div    : result = divider_quotient;
+			`mod    : result = divider_remainder;
+			`lt     : result = comparator_less;
+			`gt     : result = comparator_greater;
+			`eq     : result = comparator_equal;
+			`le     : result = comparator_less_equal;
+			`ge     : result = comparator_greater_equal;
+			`ne     : result = comparator_not_equal;
+			`lsl    : result = shifter_output_value;
+			`lsr    : result = shifter_output_value;
+			`lrl    : result = shifter_output_value;
+			`lrr    : result = shifter_output_value;
+			`and    : result = and_result;
+			`or     : result = or_result;
+			`not    : result = not_result;
+			`xor    : result = xor_result;
+			`nand   : result = nand_result;
+			`nor    : result = nor_result;
+			`xnor   : result = xor_result;
+			default : result = nop_result;
+		endcase
+	end
+
+	assign Y = result;
 
 	// ===================== STATUS REGISTER ===================== //
 

@@ -1,8 +1,21 @@
 import log
 import cocotb
 
-from math import pow
+from math import pow, prod
 from clock import Clock
+from cocotb.binary import BinaryValue
+
+def calculate_product(N, multiplicand, multiplier):
+	product = BinaryValue(n_bits = 2 * N, value = multiplicand * multiplier, bigEndian = False)
+	overflow = int(product[(2 * N) - 1 : N] != 0)
+	product = product[N - 1 : 0].integer
+	return (product, overflow)
+
+def print_io(multiplicand, multiplier, product, overflow):
+	log.info(f"multiplicand : {multiplicand}")
+	log.info(f"multiplier   : {multiplier}")
+	log.info(f"product      : {product}")
+	log.info(f"overflow     : {overflow}")
 
 async def sweep(dut, clock):
 	clock.reset()
@@ -24,17 +37,22 @@ async def sweep(dut, clock):
 				await clock.next(hold = True)   # hold to allow o_finished to change
 				cycles += 1
 
-			expected = multiplicand * multiplier
-			actual = dut.o_product.value.integer
+			(expected_product, expected_overflow) = calculate_product(N, multiplicand, multiplier)
+			actual_product = dut.o_product.value.integer
+			actual_overflow = dut.o_overflow.value.integer
 
-			if actual != expected:
-				log.error(f"{multiplicand} * {multiplier} != {actual}")
-				log.info(f"multiplicand : {multiplicand}")
-				log.info(f"multiplier   : {multiplier}")
-				log.info(f"product      : {actual}")
+			has_overflow = None
+			if actual_overflow == 1:
+				has_overflow = "with"
+			else:
+				has_overflow = "without"
+
+			if actual_product != expected_product or actual_overflow != expected_overflow:
+				log.error(f"{multiplicand} * {multiplier} != {actual_product} {has_overflow} overflow")
+				print_io(multiplicand, multiplier, actual_product, actual_overflow)
 				exit(-1)
 
-			log.success(f"{multiplicand} * {multiplier} = {expected}")
+			log.success(f"{multiplicand} * {multiplier} = {actual_product} {has_overflow} overflow")
 
 			if cycles != N:
 				log.error(f"Latency was {cycles} cycles instead of {N}")

@@ -18,7 +18,8 @@ module Multiplier
 
 	input wire [N - 1 : 0] i_multiplicand,
 	input wire [N - 1 : 0] i_multiplier,
-	output wire [(2 * N) - 1 : 0] o_product,   // N bits * N bits requires at most 2N bits
+	output wire [N - 1 : 0] o_product,   // N bits * N bits requires at most 2N bits
+	output wire o_overflow,              // asserted if product exceeds N bits
 
 	// ADDER //
 
@@ -53,7 +54,7 @@ module Multiplier
 	always @ (posedge i_clock) begin
 		if (start) begin
 			// load input value
-			multiplicand <= i_multiplicand;
+			multiplicand <= {{N{1'b0}}, i_multiplicand};
 		end else begin
 			// left shift
 			multiplicand[(2 * N) - 1 : 1] <= multiplicand[(2 * N) - 2 : 0];
@@ -104,8 +105,12 @@ module Multiplier
 		end
 	end
 
+	// OVERFLOW //
+
+	assign o_overflow = |sum[(2 * N) - 1 : N];   // overflow occurs when top N bits are non-zero
+
 	// PRODUCT //
 
-	assign o_product = sum;
+	assign o_product = sum[N - 1 : 0];   // discard top N bits
 
 endmodule

@@ -10,7 +10,8 @@ module MultiplierTB
 
 	input wire [N - 1 : 0] i_multiplicand,
 	input wire [N - 1 : 0] i_multiplier,
-	output wire [(2 * N) - 1 : 0] o_product
+	output wire [N - 1 : 0] o_product,
+	output wire o_overflow
 );
 	wire [(2 * N) - 1 : 0] adder_augend;
 	wire [(2 * N) - 1 : 0] adder_addend;
@@ -34,6 +35,7 @@ module MultiplierTB
 		.i_multiplicand(i_multiplicand),
 		.i_multiplier(i_multiplier),
 		.o_product(o_product),
+		.o_overflow(o_overflow),
 
 		.o_adder_augend(adder_augend),
 		.o_adder_addend(adder_addend),

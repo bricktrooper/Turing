@@ -13,8 +13,7 @@ module ALUTB
 
 	input wire [N - 1 : 0] A,
 	input wire [N - 1 : 0] B,
-	output wire [N - 1 : 0] Y,
-	output wire [N - 1 : 0] X
+	output wire [N - 1 : 0] Y
 );
 
 	ALU #(.N(N)) alu
@@ -26,8 +25,7 @@ module ALUTB
 		.opcode(opcode),
 		.A(A),
 		.B(B),
-		.Y(Y),
-		.X(X)
+		.Y(Y)
 	);
 
 	initial begin

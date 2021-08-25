@@ -1,9 +1,6 @@
-from re import L
-from warnings import resetwarnings
 import log
 import cocotb
 
-from math import pow
 from clock import Clock
 from cocotb.binary import BinaryValue
 
@@ -13,52 +10,7 @@ RIGHT = 0
 SHIFT = 0
 ROTATE = 1
 
-def print_io(input, output, direction, iterations, rotate):
-	log.info(f"input      : {input}")
-	log.info(f"output     : {output}")
-	log.info(f"direction  : {direction}")
-	log.info(f"iterations : {iterations}")
-	log.info(f"rotate     : {rotate}")
-
-def calculate_shift(N, value, iterations, direction):
-	result = None
-	if (direction == LEFT):
-		result = BinaryValue(n_bits = N + iterations, value = value << iterations, bigEndian = False)
-		result = result[N - 1 : 0]
-	elif (direction == RIGHT):
-		result = BinaryValue(n_bits = N, value = value >> iterations, bigEndian = False)
-	else:
-		log.error(f"Invalid direction '{direction}'")
-		exit(-1)
-
-	return result
-
-def calculate_rotation(N, value, iterations, direction):
-	result = BinaryValue(n_bits = N, value = value, bigEndian = False)
-	for i in range(iterations):
-		result = BinaryValue(n_bits = N, value = result.integer, bigEndian = False)
-		msb = result[N - 1].integer
-		lsb = result[0].integer
-		result = calculate_shift(N, result, 1, direction)
-		if (direction == LEFT):
-			result[0] = msb
-		elif (direction == RIGHT):
-			result[N - 1] = lsb
-		else:
-			log.error(f"Invalid direction '{direction}'")
-			exit(-1)
-	return result
-
-def calculate_expected(N, value, iterations, direction, rotate):
-	if (rotate == SHIFT):
-		return calculate_shift(N, value, iterations, direction)
-	elif (rotate == ROTATE):
-		return calculate_rotation(N, value, iterations, direction)
-	else:
-		log.error(f"Invalid rotate flag '{rotate}'")
-		exit(-1)
-
-def get_symbol(value, iterations, direction, rotate):
+def get_symbol(direction, rotate):
 	if (rotate == SHIFT and direction == LEFT):
 		return "<<"
 	elif (rotate == SHIFT and direction == RIGHT):
@@ -71,10 +23,63 @@ def get_symbol(value, iterations, direction, rotate):
 		log.error(f"Invalid direction '{direction}' and/or rotate flag '{rotate}'")
 		exit(-1)
 
+def predict_result(N, value, direction, iterations, rotate):
+	result = value
+	mask = (2 ** N) - 1
+
+	for i in range(iterations):
+		if (rotate == SHIFT and direction == LEFT):
+			result = (result << 1) & mask
+		elif (rotate == SHIFT and direction == RIGHT):
+			result = (result >> 1) & mask
+		elif (rotate == ROTATE and direction == LEFT):
+			msb = result & (0x1 << (N - 1)) != 0
+			result = (result << 1) & mask
+			if msb:
+				result |= 0x1
+		elif (rotate == ROTATE and direction == RIGHT):
+			lsb = result & 0x1 != 0
+			result = (result >> 1) & mask
+			if lsb:
+				result |= (0x1 << (N - 1))
+		else:
+			log.error(f"Invalid direction '{direction}' and/or rotate flag '{rotate}'")
+			exit(-1)
+
+	return result
+
+def print_io(N, value, result, direction, iterations, rotate):
+	log.info("============== I/O ==============")
+	log.info(f"N            : {N} b")
+	log.info(f"i_value      : {value}")
+	log.info(f"o_result     : {result}")
+	log.info(f"i_direction  : {direction}")
+	log.info(f"i_iterations : {iterations}")
+	log.info(f"i_rotate     : {rotate}")
+	log.info("=================================")
+
+def verify(N, cycles, value, result, direction, iterations, rotate):
+	expected_result = predict_result(N, value, direction, iterations, rotate)
+
+	symbol = get_symbol(direction, rotate)
+	value = BinaryValue(n_bits = N, value = value, bigEndian = False)
+	result = BinaryValue(n_bits = N, value = result, bigEndian = False)
+
+	if result != expected_result:
+		log.error(f"{value} {symbol} {iterations} != {result}")
+		print_io(N, value, result, direction, iterations, rotate)
+		exit(-1)
+
+	log.success(f"{value} {symbol} {iterations} = {result}")
+
+	if cycles != iterations:
+		log.error(f"Latency was {cycles} cycles instead of {N}")
+		exit(-1)
+
 async def sweep(dut, clock):
 	clock.reset()
 	N = int(dut.N)
-	VALUES = int(pow(2, N))
+	VALUES = 2 ** N
 	LEFT = 1
 	RIGHT = 0
 
@@ -87,8 +92,8 @@ async def sweep(dut, clock):
 
 	for rotate in (SHIFT, ROTATE):
 		for direction in (LEFT, RIGHT):
-			for iterations in range(VALUES):
-				for value in range(VALUES):
+			for value in range(VALUES):
+				for iterations in range(VALUES):
 					dut.i_value <= value
 					dut.i_iterations <= iterations
 					dut.i_rotate <= rotate
@@ -102,28 +107,13 @@ async def sweep(dut, clock):
 							await clock.next(hold = True)   # hold to allow o_finished to change
 							cycles += 1
 
-					expected = calculate_expected(N, value, iterations, direction, rotate)
-					actual = dut.o_value.value.integer
-					symbol = get_symbol(N, iterations, direction, rotate)
-					value = BinaryValue(n_bits = N, value = value, bigEndian = False)
-
-					if actual != expected:
-						log.error(f"{value} {symbol} {iterations} != {actual}")
-						print_io(value, actual, direction, iterations, rotate)
-						exit(-1)
-
-					log.success(f"{value} {symbol} {iterations} = {expected}")
-
-					if cycles != iterations:
-						log.error(f"Latency was {cycles} cycles instead of {iterations}")
-						exit(-1)
+					result = dut.o_result.value.integer
+					verify(N, cycles, value, result, direction, iterations, rotate)
 
 					await clock.next()   # wait an extra cycle for the busy register to clear
 
 	dut.i_start <= 0
 	await clock.next()
-
-	# ROTATOR #
 
 @cocotb.test()
 async def testbench(dut):

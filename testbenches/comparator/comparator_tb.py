@@ -1,23 +1,85 @@
 import log
 import cocotb
 
-from math import pow
 from clock import Clock
 
-def print_io(left, right, greater, equal, less, greater_equal, not_equal, less_equal):
-	log.info(f"left          : {left}")
-	log.info(f"right         : {right}")
-	log.info(f"greater       : {greater}")
-	log.info(f"equal         : {equal}")
-	log.info(f"less          : {less}")
-	log.info(f"greater_equal : {greater_equal}")
-	log.info(f"not_equal     : {not_equal}")
-	log.info(f"less_equal    : {less_equal}")
+def predict_output(N, left, right):
+	greater = left > right
+	equal = left == right
+	less = left < right
+	greater_equal = left >= right
+	not_equal = left != right
+	less_equal = left <= right
+	return (greater, equal, less, greater_equal, not_equal, less_equal)
+
+def print_io(N, left, right, greater, equal, less, greater_equal, not_equal, less_equal):
+	log.info("============== I/O ==============")
+	log.info(f"N               : {N} b")
+	log.info(f"i_left          : {left}")
+	log.info(f"i_right         : {right}")
+	log.info(f"o_greater       : {greater}")
+	log.info(f"o_equal         : {equal}")
+	log.info(f"o_less          : {less}")
+	log.info(f"o_greater_equal : {greater_equal}")
+	log.info(f"o_not_equal     : {not_equal}")
+	log.info(f"o_less_equal    : {less_equal}")
+	log.info("=================================")
+
+def verify(N, left, right, greater, equal, less, greater_equal, not_equal, less_equal):
+	(expected_greater, expected_equal, expected_less, expected_greater_equal, expected_not_equal, expected_less_equal) = predict_output(N, left, right)
+
+	# greater than
+	if greater != expected_greater:
+		log.error(f"{left} > {right} is not {bool(greater)}")
+		print_io(N, left, right, greater, equal, less, greater_equal, not_equal, less_equal)
+		exit(-1)
+
+	log.success(f"{left} > {right} is {bool(greater)}")
+
+	# equal to
+	if equal != expected_equal:
+		log.error(f"{left} == {right} is not {bool(equal)}")
+		print_io(N, left, right, greater, equal, less, greater_equal, not_equal, less_equal)
+		exit(-1)
+
+	log.success(f"{left} == {right} is {bool(equal)}")
+
+	# less than
+	if less != expected_less:
+		log.error(f"{left} < {right} is not {bool(less)}")
+		print_io(N, left, right, greater, equal, less, greater_equal, not_equal, less_equal)
+		exit(-1)
+
+	log.success(f"{left} < {right} is {bool(less)}")
+
+	# greater than or equal to
+	if greater_equal != expected_greater_equal:
+		log.error(f"{left} >= {right} is not {bool(greater_equal)}")
+		print_io(N, left, right, greater, equal, less, greater_equal, not_equal, less_equal)
+		exit(-1)
+
+	log.success(f"{left} >= {right} is {bool(greater_equal)}")
+
+	# not equal to
+	if not_equal != expected_not_equal:
+		log.error(f"{left} != {right} is not {bool(not_equal)}")
+		print_io(N, left, right, greater, equal, less, greater_equal, not_equal, less_equal)
+		exit(-1)
+
+	log.success(f"{left} != {right} is {bool(not_equal)}")
+
+	# less than or equal to
+	if less_equal != expected_less_equal:
+		log.error(f"{left} <= {right} is not {bool(less_equal)}")
+		print_io(N, left, right, greater, equal, less, greater_equal, not_equal, less_equal)
+		exit(-1)
+
+	log.success(f"{left} <= {right} is {bool(less_equal)}")
 
 async def sweep(dut, clock):
 	clock.reset()
 	N = int(dut.N)
-	VALUES = int(pow(2, N))
+	VALUES = 2 ** N
 
 	for left in range(VALUES):
 		for right in range(VALUES):
@@ -33,71 +95,7 @@ async def sweep(dut, clock):
 			not_equal = dut.o_not_equal.value
 			less_equal = dut.o_less_equal.value
 
-			# greater than
-			expected = left > right
-			actual = greater
-
-			if actual != expected:
-				log.error(f"{left} > {right} is not {bool(actual)}")
-				print_io(left, right, greater, equal, less, greater_equal, not_equal, less_equal)
-				exit(-1)
-
-			log.success(f"{left} > {right} is {bool(actual)}")
-
-			# equal to
-			expected = left == right
-			actual = equal
-
-			if actual != expected:
-				log.error(f"{left} == {right} is not {bool(actual)}")
-				print_io(left, right, greater, equal, less, greater_equal, not_equal, less_equal)
-				exit(-1)
-
-			log.success(f"{left} == {right} is {bool(actual)}")
-
-			# less than
-			expected = left < right
-			actual = less
-
-			if actual != expected:
-				log.error(f"{left} < {right} is not {bool(actual)}")
-				print_io(left, right, greater, equal, less, greater_equal, not_equal, less_equal)
-				exit(-1)
-
-			log.success(f"{left} < {right} is {bool(actual)}")
-
-			# greater than or equal to
-			expected = left >= right
-			actual = greater_equal
-
-			if actual != expected:
-				log.error(f"{left} >= {right} is not {bool(actual)}")
-				print_io(left, right, greater, equal, less, greater_equal, not_equal, less_equal)
-				exit(-1)
-
-			log.success(f"{left} >= {right} is {bool(actual)}")
-
-			# not equal to
-			expected = left != right
-			actual = not_equal
-
-			if actual != expected:
-				log.error(f"{left} != {right} is not {bool(actual)}")
-				print_io(left, right, greater, equal, less, greater_equal, not_equal, less_equal)
-				exit(-1)
-
-			log.success(f"{left} != {right} is {bool(actual)}")
-
-			# less than or equal to
-			expected = left <= right
-			actual = less_equal
-
-			if actual != expected:
-				log.error(f"{left} <= {right} is not {bool(actual)}")
-				print_io(left, right, greater, equal, less, greater_equal, not_equal, less_equal)
-				exit(-1)
-
-			log.success(f"{left} <= {right} is {bool(actual)}")
+			verify(N, left, right, greater, equal, less, greater_equal, not_equal, less_equal)
 
 @cocotb.test()
 async def testbench(dut):

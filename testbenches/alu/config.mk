@@ -1,4 +1,4 @@
-DUT = ALUTB
+DUT = ALU_TB
 TB = alu_tb
 
 CIRCUITS = ../../circuits

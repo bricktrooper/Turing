@@ -77,12 +77,13 @@ module ALU
 	wire [N - 1 : 0] adder_augend;
 	wire [N - 1 : 0] adder_addend;
 	wire [N - 1 : 0] adder_sum;
+	wire adder_carry;
 
 	wire [(2 * N) - 1 : 0] adder_full_augend;
 	wire [(2 * N) - 1 : 0] adder_full_addend;
 	wire [(2 * N) - 1 : 0] adder_full_sum;
 
-	wire adder_carry;
+	reg adder_finished;
 
 	Adder #(.N(2 * N)) adder
 	(
@@ -98,6 +99,8 @@ module ALU
 	wire [N - 1 : 0] subtractor_subtrahend;
 	wire [N - 1 : 0] subtractor_difference;
 	wire subtractor_borrow;
+
+	reg subtractor_finished;
 
 	Subtractor #(.N(N)) subtractor
 	(
@@ -178,6 +181,8 @@ module ALU
 	wire comparator_not_equal;
 	wire comparator_less_equal;
 
+	reg comparator_finished;
+
 	Comparator #(.N(N)) comparator
 	(
 		.i_left(comparator_left),
@@ -197,8 +202,8 @@ module ALU
 	wire shifter_direction;
 	wire shifter_rotate;
 	wire [N - 1 : 0] shifter_iterations;
-	wire [N - 1 : 0] shifter_input_value;
-	wire [N - 1 : 0] shifter_output_value;
+	wire [N - 1 : 0] shifter_value;
+	wire [N - 1 : 0] shifter_result;
 	wire [N - 1 : 0] shifter_adder_augend;
 	wire [N - 1 : 0] shifter_adder_addend;
 	wire [N - 1 : 0] shifter_adder_sum;
@@ -215,8 +220,8 @@ module ALU
 		.i_direction(shifter_direction),
 		.i_rotate(shifter_rotate),
 		.i_iterations(shifter_iterations),
-		.i_value(shifter_input_value),
-		.o_value(shifter_output_value),
+		.i_value(shifter_value),
+		.o_result(shifter_result),
 		.o_adder_augend(shifter_adder_augend),
 		.o_adder_addend(shifter_adder_addend),
 		.i_adder_sum(shifter_adder_sum),
@@ -265,28 +270,28 @@ module ALU
 
 	always @ (*) begin
 		case (opcode)
-			`add    : decoded = 22'b0000000000000000000001;
-			`sub    : decoded = 22'b0000000000000000000010;
-			`mul    : decoded = 22'b0000000000000000000100;
-			`div    : decoded = 22'b0000000000000000001000;
-			`mod    : decoded = 22'b0000000000000000010000;
-			`lt     : decoded = 22'b0000000000000000100000;
-			`gt     : decoded = 22'b0000000000000001000000;
-			`eq     : decoded = 22'b0000000000000010000000;
-			`le     : decoded = 22'b0000000000000100000000;
-			`ge     : decoded = 22'b0000000000001000000000;
-			`ne     : decoded = 22'b0000000000010000000000;
-			`lsl    : decoded = 22'b0000000000100000000000;
-			`lsr    : decoded = 22'b0000000001000000000000;
-			`lrl    : decoded = 22'b0000000010000000000000;
-			`lrr    : decoded = 22'b0000000100000000000000;
-			`and    : decoded = 22'b0000001000000000000000;
-			`or     : decoded = 22'b0000010000000000000000;
-			`not    : decoded = 22'b0000100000000000000000;
-			`xor    : decoded = 22'b0001000000000000000000;
-			`nand   : decoded = 22'b0010000000000000000000;
-			`nor    : decoded = 22'b0100000000000000000000;
-			`xnor   : decoded = 22'b1000000000000000000000;
+			`add    : decoded = 22'b1000000000000000000000;
+			`sub    : decoded = 22'b0100000000000000000000;
+			`mul    : decoded = 22'b0010000000000000000000;
+			`div    : decoded = 22'b0001000000000000000000;
+			`mod    : decoded = 22'b0000100000000000000000;
+			`lt     : decoded = 22'b0000010000000000000000;
+			`gt     : decoded = 22'b0000001000000000000000;
+			`eq     : decoded = 22'b0000000100000000000000;
+			`le     : decoded = 22'b0000000010000000000000;
+			`ge     : decoded = 22'b0000000001000000000000;
+			`ne     : decoded = 22'b0000000000100000000000;
+			`lsl    : decoded = 22'b0000000000010000000000;
+			`lsr    : decoded = 22'b0000000000001000000000;
+			`lrl    : decoded = 22'b0000000000000100000000;
+			`lrr    : decoded = 22'b0000000000000010000000;
+			`and    : decoded = 22'b0000000000000001000000;
+			`or     : decoded = 22'b0000000000000000100000;
+			`not    : decoded = 22'b0000000000000000010000;
+			`xor    : decoded = 22'b0000000000000000001000;
+			`nand   : decoded = 22'b0000000000000000000100;
+			`nor    : decoded = 22'b0000000000000000000010;
+			`xnor   : decoded = 22'b0000000000000000000001;
 			default : decoded = 22'b0000000000000000000000;   // nop
 		endcase
 	end
@@ -380,9 +385,9 @@ module ALU
 	//wire shifter_finished;
 	//wire shifter_direction;
 	//wire shifter_rotate;
-	assign shifter_input_value = A;
+	assign shifter_value = A;
 	assign shifter_iterations = B;
-	//wire [N - 1 : 0] shifter_output_value;
+	//wire [N - 1 : 0] shifter_result;
 	//wire [N - 1 : 0] shifter_adder_augend;
 	//wire [N - 1 : 0] shifter_adder_addend;
 	//wire [N - 1 : 0] shifter_adder_sum;
@@ -404,7 +409,19 @@ module ALU
 
 	// ===================== STATE MACHINE CONTROLS ===================== //
 
+	always @ (posedge clock) begin
+		if (reset) begin
+			adder_finished <= 1'b0;
+		end else if (opcode_add) begin
+			adder_finished <= start;
+		end else begin
+			adder_finished <= 1'b0;
+		end
+	end
+
 	// TODO: start should only happen when the main ALU start is asserted
+
+	assign finished = adder_finished;
 
 	// ===================== OUTPUT MUX ===================== //
 
@@ -423,10 +440,10 @@ module ALU
 			`le     : result = comparator_less_equal;
 			`ge     : result = comparator_greater_equal;
 			`ne     : result = comparator_not_equal;
-			`lsl    : result = shifter_output_value;
-			`lsr    : result = shifter_output_value;
-			`lrl    : result = shifter_output_value;
-			`lrr    : result = shifter_output_value;
+			`lsl    : result = shifter_result;
+			`lsr    : result = shifter_result;
+			`lrl    : result = shifter_result;
+			`lrr    : result = shifter_result;
 			`and    : result = and_result;
 			`or     : result = or_result;
 			`not    : result = not_result;

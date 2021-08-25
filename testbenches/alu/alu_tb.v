@@ -1,4 +1,4 @@
-module ALUTB
+module ALU_TB
 #(
 	parameter N = 4
 )

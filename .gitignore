@@ -3,3 +3,4 @@ __pycache__
 results.xml
 *.vcd
 *.out
+.DS_Store

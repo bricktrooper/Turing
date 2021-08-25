@@ -1,21 +1,50 @@
 import log
 import cocotb
 
-from math import pow
 from clock import Clock
-from cocotb.binary import BinaryValue
 
-def join(sum, carry):
-	BITS = sum.n_bits
-	value = BinaryValue(n_bits = BITS + 1,
-	                    bigEndian = False,
-						value = sum.integer + (carry.integer << BITS))
-	return value.integer
+def predict_output(N, augend, addend):
+	if augend + addend >  (2 ** N) - 1:
+		carry = 1
+	else:
+		carry = 0
+	sum = (augend + addend) % (2 ** N)
+	return (sum, carry)
+
+def print_io(N, augend, addend, sum, carry):
+	log.info("============== I/O ==============")
+	log.info(f"N        : {N} b")
+	log.info(f"i_augend : {augend}")
+	log.info(f"i_addend : {addend}")
+	log.info(f"o_sum    : {sum}")
+	log.info(f"o_carry  : {carry}")
+	log.info("=================================")
+
+def verify(N, augend, addend, sum, carry):
+	(expected_sum, expected_carry) = predict_output(N, augend, addend)
+
+	carry_string = None
+	if carry == 1:
+		carry_string = "with carry"
+	else:
+		carry_string = "without carry"
+
+	if sum != expected_sum:
+		log.error(f"{augend} + {addend} != {sum} {carry_string}")
+		print_io(N, augend, addend, sum, carry)
+		exit(-1)
+
+	if carry != expected_carry:
+		log.error(f"{augend} + {addend} != {sum} {carry_string}")
+		print_io(N, augend, addend, sum, carry)
+		exit(-1)
+
+	log.success(f"{augend} + {addend} = {sum} {carry_string}")
 
 async def sweep(dut, clock):
 	clock.reset()
 	N = int(dut.N)
-	VALUES = int(pow(2, N))
+	VALUES = 2 ** N
 
 	for augend in range(VALUES):
 		for addend in range(VALUES):
@@ -23,21 +52,10 @@ async def sweep(dut, clock):
 			dut.i_addend <= addend
 			await clock.next()
 
-			expected = augend + addend
-			actual = join(dut.o_sum.value, dut.o_carry.value)
-
 			sum = dut.o_sum.value.integer
-			carry = dut.o_carry.value.integer
+			carry = dut.o_carry.value
 
-			if actual != expected:
-				log.error(f"{augend} + {addend} != {actual}")
-				log.info(f"augend : {augend}")
-				log.info(f"addend : {addend}")
-				log.info(f"sum    : {sum}")
-				log.info(f"carry  : {carry}")
-				exit(-1)
-
-			log.success(f"{augend} + {addend} = {expected}")
+			verify(N, augend, addend, sum, carry)
 
 @cocotb.test()
 async def testbench(dut):

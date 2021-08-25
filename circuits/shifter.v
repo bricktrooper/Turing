@@ -23,7 +23,7 @@ module Shifter
 	// DATA //
 
 	input wire [N - 1 : 0] i_value,
-	output wire [N - 1 : 0] o_value,
+	output wire [N - 1 : 0] o_result,
 
 	// ADDER //
 
@@ -96,9 +96,9 @@ module Shifter
 
 	// save shifted or rotated value for next iteration
 	always @ (posedge i_clock) begin
-		value <= o_value;
+		value <= o_result;
 	end
 
-	assign o_value = start ? i_value : shifted;
+	assign o_result = start ? i_value : shifted;
 
 endmodule

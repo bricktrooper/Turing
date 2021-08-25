@@ -14,7 +14,7 @@ module ShifterTB
 	input wire [N - 1 : 0] i_iterations,
 
 	input wire [N - 1 : 0] i_value,
-	output wire [N - 1 : 0] o_value
+	output wire [N - 1 : 0] o_result
 );
 	wire [N - 1 : 0] adder_augend;
 	wire [N - 1 : 0] adder_addend;
@@ -57,7 +57,7 @@ module ShifterTB
 		.i_rotate(i_rotate),
 
 		.i_value(i_value),
-		.o_value(o_value),
+		.o_result(o_result),
 
 		.o_adder_augend(adder_augend),
 		.o_adder_addend(adder_addend),

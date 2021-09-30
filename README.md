@@ -22,7 +22,7 @@ The multiplier is a sequential circuit with a latency of N clock cycles, where N
 
 ## Divider
 
-The divider is a sequential circuit with a latency of N clock cycles, where N is the bit width of the operands.  It uses a 1-hot state machine to time the output and states of the circuit.  The quotient is generated sequentially using the subtractor circuit.  The remainder is generated in parallel as a by-product of the division, which extends the divider's functionality as a modulo circuit.  The operands are shifted every cycle using shift registers.  The operation symbol is `/`.
+The divider is a sequential circuit with a latency of N clock cycles, where N is the bit width of the operands.  It uses a 1-hot state machine to time the output and states of the circuit.  The quotient is generated sequentially using the subtractor circuit.  The remainder is generated in parallel as a by-product of the division, which extends the divider's functionality as a modulo circuit.  The operands are shifted every cycle using shift registers.  The operation symbols are `/` for division and `%` for remainder.
 
 ![alt text](schematics/divider.jpg)
 
@@ -34,7 +34,7 @@ The comparator is a combinational circuit with a latency of 1 clock cycles.  It 
 
 ## Shifter / Rotator
 
-The shifter is a sequential circuit with a variable latency which depends on the number of shifts or rotations that a required.  This is tracked by using a counter register and the adder circuit as an incrementer.  The shifter will use a series of shift registers that can shift bits up and down.  In rotate mode, the LSB and MSB will loop directly around when a shift occurs.  This circuit does **not** support arithmetic right shifts (sign extension).  The operation symbols for left and right shift are `<<` and `>>` respectively.  The operation symbols for left and right rotate are `<<|` and `|>>` respectively, which are a variation of the shift symbols.
+The shifter is a sequential circuit with a variable latency which depends on the number of shifts or rotations that is required.  This is tracked with a counter register and by using the adder circuit as an incrementer.  The shifter will use a series of registers that can shift bits up and down.  In rotate mode, the LSB and MSB will loop directly around when a shift occurs.  This circuit does **not** support arithmetic right shifts (sign extension).  The operation symbols for left and right shift are `<<` and `>>` respectively.  The operation symbols for left and right rotate are `<<|` and `|>>` respectively, which are a variation of the shift symbols.
 
 ![alt text](schematics/shifter.jpg)
 

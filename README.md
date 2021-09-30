@@ -16,13 +16,13 @@ The subtractor is a combinational circuit with a latency of 1 clock cycle.  The 
 
 ## Multiplier
 
-The multiplier is a sequential circuit with a latency of N clock cycles, where N is the bit width of the operands.  It uses a 1-hot state machine to time the output and states of the circuit.  The product is accumulated using the adder circuit while the multiplication is performed using a bitwise AND between the operand bits.  The operands are shifted every cycle using shifter registers.  The operation symbol is `*`.
+The multiplier is a sequential circuit with a latency of N clock cycles, where N is the bit width of the operands.  It uses a 1-hot state machine to time the output and states of the circuit.  The product is accumulated using the adder circuit while the multiplication is performed using a bitwise AND between the operand bits.  The operands are shifted every cycle using shift registers.  The operation symbol is `*`.
 
 ![alt text](schematics/multiplier.jpg)
 
 ## Divider
 
-The divider is a sequential circuit with a latency of N clock cycles, where N is the bit width of the operands.  It uses a 1-hot state machine to time the output and states of the circuit.  The quotient is generated sequentially using the subtractor circuit.  The remainder is generated in parallel as a by-product of the division, which extends the divider's functionality as a modulo circuit.  The operands are shifted every cycle using shifter registers.  The operation symbol is `/`.
+The divider is a sequential circuit with a latency of N clock cycles, where N is the bit width of the operands.  It uses a 1-hot state machine to time the output and states of the circuit.  The quotient is generated sequentially using the subtractor circuit.  The remainder is generated in parallel as a by-product of the division, which extends the divider's functionality as a modulo circuit.  The operands are shifted every cycle using shift registers.  The operation symbol is `/`.
 
 ![alt text](schematics/divider.jpg)
 

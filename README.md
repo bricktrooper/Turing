@@ -40,6 +40,6 @@ The shifter is a sequential circuit with a variable latency which depends on the
 
 # ALU
 
-The ALU circuit simply routes the inputs and outputs based on the decoded opcode.  It also handles the `start` and `finished` signals of the state machines.  Below is a high-level schematic of the ALU wiring:
+The ALU circuit simply routes the inputs and outputs based on the decoded opcode.  It also handles the `start` and `finished` signals of the state machines.  There are additional datapaths for performing primitive logic operations, which are simply raw logic gates.  Below is a high-level schematic of the ALU wiring:
 
 ![alt text](schematics/alu.jpg)
